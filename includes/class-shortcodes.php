@@ -24,6 +24,8 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_oneform_courses', array(__CLASS__, 'courses_list'));
         add_shortcode('ck_oneform_colleges', array(__CLASS__, 'colleges_list'));
         add_shortcode('ck_oneform_apply', array(__CLASS__, 'enhanced_application'));
+        add_shortcode('ck_student_login', array(__CLASS__, 'student_login'));
+        add_shortcode('ck_student_dashboard', array(__CLASS__, 'student_dashboard'));
     }
 
     /**
@@ -150,6 +152,48 @@ class CK_OneForm_Shortcodes {
     public static function enhanced_application($atts) {
         ob_start();
         include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/application-form-enhanced.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * Student login/registration page
+     */
+    public static function student_login($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/student-login.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * Student dashboard page
+     */
+    public static function student_dashboard($atts) {
+        // Check if student is logged in
+        if (!CK_OneForm_Student_Auth::is_student_logged_in()) {
+            return '<p>Please <a href="' . home_url('/student-login/') . '">login</a> to access your dashboard.</p>';
+        }
+
+        ob_start();
+        // Dashboard template will be created next
+        echo '<div class="ck-student-dashboard">';
+        echo '<h1>🎓 Student Dashboard</h1>';
+        $student = CK_OneForm_Student_Auth::get_current_student();
+        echo '<p>Welcome, ' . esc_html($student->full_name) . '!</p>';
+        echo '<p>Student ID: ' . esc_html($student->student_id) . '</p>';
+        echo '<a href="#" id="student-logout">Logout</a>';
+        echo '</div>';
+        echo '<script>
+        jQuery(document).ready(function($) {
+            $("#student-logout").on("click", function(e) {
+                e.preventDefault();
+                $.post("' . admin_url('admin-ajax.php') . '", {
+                    action: "ck_student_logout"
+                }, function() {
+                    window.location.href = "' . home_url('/student-login/') . '";
+                });
+            });
+        });
+        </script>';
         return ob_get_clean();
     }
 }
