@@ -19,21 +19,53 @@ class CK_OneForm_Database {
 
         $charset_collate = $wpdb->get_charset_collate();
 
-        // Applications table
+        // Students table (separate from WordPress users)
+        $table_students = $wpdb->prefix . 'ck_oneform_students';
+        $sql_students = "CREATE TABLE IF NOT EXISTS $table_students (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            student_id varchar(50) NOT NULL UNIQUE,
+            full_name varchar(255) NOT NULL,
+            email varchar(255) NOT NULL UNIQUE,
+            mobile varchar(20) NOT NULL,
+            password varchar(255) NOT NULL,
+            dob date,
+            gender varchar(20),
+            category varchar(50),
+            address text,
+            state varchar(100),
+            city varchar(100),
+            pincode varchar(10),
+            photo_url varchar(500),
+            status varchar(20) DEFAULT 'active',
+            email_verified tinyint(1) DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            last_login datetime,
+            PRIMARY KEY (id),
+            KEY email (email),
+            KEY student_id (student_id),
+            KEY status (status)
+        ) $charset_collate;";
+
+        // Applications table (updated to link with students)
         $table_applications = $wpdb->prefix . 'ck_oneform_applications';
         $sql_applications = "CREATE TABLE IF NOT EXISTS $table_applications (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id bigint(20) UNSIGNED NOT NULL,
+            student_id bigint(20) UNSIGNED NOT NULL,
+            user_id bigint(20) UNSIGNED DEFAULT 0,
             form_id bigint(20) UNSIGNED NOT NULL,
             application_number varchar(50) NOT NULL UNIQUE,
+            college_ids text,
             status varchar(50) DEFAULT 'pending',
             form_data longtext,
             submission_date datetime DEFAULT CURRENT_TIMESTAMP,
             updated_date datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            admin_notes text,
             PRIMARY KEY (id),
+            KEY student_id (student_id),
             KEY user_id (user_id),
             KEY form_id (form_id),
-            KEY status (status)
+            KEY status (status),
+            KEY application_number (application_number)
         ) $charset_collate;";
 
         // Form submissions meta table
@@ -53,7 +85,8 @@ class CK_OneForm_Database {
         $sql_payments = "CREATE TABLE IF NOT EXISTS $table_payments (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             application_id bigint(20) UNSIGNED NOT NULL,
-            user_id bigint(20) UNSIGNED NOT NULL,
+            student_id bigint(20) UNSIGNED NOT NULL,
+            user_id bigint(20) UNSIGNED DEFAULT 0,
             transaction_id varchar(100),
             amount decimal(10,2) NOT NULL,
             currency varchar(10) DEFAULT 'INR',
@@ -62,6 +95,7 @@ class CK_OneForm_Database {
             payment_date datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY application_id (application_id),
+            KEY student_id (student_id),
             KEY user_id (user_id),
             KEY transaction_id (transaction_id)
         ) $charset_collate;";
@@ -71,7 +105,8 @@ class CK_OneForm_Database {
         $sql_documents = "CREATE TABLE IF NOT EXISTS $table_documents (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             application_id bigint(20) UNSIGNED NOT NULL,
-            user_id bigint(20) UNSIGNED NOT NULL,
+            student_id bigint(20) UNSIGNED NOT NULL,
+            user_id bigint(20) UNSIGNED DEFAULT 0,
             document_type varchar(100),
             file_name varchar(255),
             file_path varchar(500),
@@ -79,14 +114,149 @@ class CK_OneForm_Database {
             uploaded_date datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY application_id (application_id),
+            KEY student_id (student_id),
             KEY user_id (user_id)
         ) $charset_collate;";
 
+        // Services table
+        $table_services = $wpdb->prefix . 'ck_oneform_services';
+        $sql_services = "CREATE TABLE IF NOT EXISTS $table_services (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            title varchar(255) NOT NULL,
+            description text,
+            service_type varchar(50),
+            price decimal(10,2) DEFAULT 0,
+            features text,
+            icon varchar(100),
+            status varchar(20) DEFAULT 'active',
+            display_order int(11) DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY status (status)
+        ) $charset_collate;";
+
+        // Mock Tests table
+        $table_mock_tests = $wpdb->prefix . 'ck_oneform_mock_tests';
+        $sql_mock_tests = "CREATE TABLE IF NOT EXISTS $table_mock_tests (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            title varchar(255) NOT NULL,
+            description text,
+            exam_type varchar(100),
+            duration int(11),
+            total_questions int(11),
+            total_marks int(11),
+            price decimal(10,2) DEFAULT 0,
+            thumbnail varchar(500),
+            status varchar(20) DEFAULT 'active',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY status (status),
+            KEY exam_type (exam_type)
+        ) $charset_collate;";
+
+        // Offers table
+        $table_offers = $wpdb->prefix . 'ck_oneform_offers';
+        $sql_offers = "CREATE TABLE IF NOT EXISTS $table_offers (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            title varchar(255) NOT NULL,
+            description text,
+            offer_type varchar(50),
+            discount_value decimal(10,2),
+            discount_type varchar(20),
+            valid_from datetime,
+            valid_until datetime,
+            terms text,
+            banner_image varchar(500),
+            target_students text,
+            status varchar(20) DEFAULT 'active',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY status (status),
+            KEY valid_from (valid_from),
+            KEY valid_until (valid_until)
+        ) $charset_collate;";
+
+        // Student Services (purchased services)
+        $table_student_services = $wpdb->prefix . 'ck_oneform_student_services';
+        $sql_student_services = "CREATE TABLE IF NOT EXISTS $table_student_services (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            student_id bigint(20) UNSIGNED NOT NULL,
+            service_id bigint(20) UNSIGNED NOT NULL,
+            order_id varchar(100),
+            amount_paid decimal(10,2),
+            status varchar(50) DEFAULT 'active',
+            purchased_date datetime DEFAULT CURRENT_TIMESTAMP,
+            expires_date datetime,
+            PRIMARY KEY (id),
+            KEY student_id (student_id),
+            KEY service_id (service_id),
+            KEY status (status)
+        ) $charset_collate;";
+
+        // Student Mock Tests (purchased/attempted tests)
+        $table_student_tests = $wpdb->prefix . 'ck_oneform_student_tests';
+        $sql_student_tests = "CREATE TABLE IF NOT EXISTS $table_student_tests (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            student_id bigint(20) UNSIGNED NOT NULL,
+            test_id bigint(20) UNSIGNED NOT NULL,
+            order_id varchar(100),
+            amount_paid decimal(10,2),
+            status varchar(50) DEFAULT 'purchased',
+            attempts int(11) DEFAULT 0,
+            best_score decimal(5,2),
+            purchased_date datetime DEFAULT CURRENT_TIMESTAMP,
+            last_attempt_date datetime,
+            PRIMARY KEY (id),
+            KEY student_id (student_id),
+            KEY test_id (test_id),
+            KEY status (status)
+        ) $charset_collate;";
+
+        // Student Offers (assigned offers)
+        $table_student_offers = $wpdb->prefix . 'ck_oneform_student_offers';
+        $sql_student_offers = "CREATE TABLE IF NOT EXISTS $table_student_offers (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            student_id bigint(20) UNSIGNED NOT NULL,
+            offer_id bigint(20) UNSIGNED NOT NULL,
+            assigned_by bigint(20) UNSIGNED,
+            is_used tinyint(1) DEFAULT 0,
+            used_date datetime,
+            assigned_date datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY student_id (student_id),
+            KEY offer_id (offer_id),
+            KEY is_used (is_used)
+        ) $charset_collate;";
+
+        // Student Sessions (for custom auth)
+        $table_sessions = $wpdb->prefix . 'ck_oneform_student_sessions';
+        $sql_sessions = "CREATE TABLE IF NOT EXISTS $table_sessions (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            student_id bigint(20) UNSIGNED NOT NULL,
+            session_token varchar(255) NOT NULL UNIQUE,
+            ip_address varchar(50),
+            user_agent text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            expires_at datetime,
+            PRIMARY KEY (id),
+            KEY student_id (student_id),
+            KEY session_token (session_token),
+            KEY expires_at (expires_at)
+        ) $charset_collate;";
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql_students);
         dbDelta($sql_applications);
         dbDelta($sql_submissions_meta);
         dbDelta($sql_payments);
         dbDelta($sql_documents);
+        dbDelta($sql_services);
+        dbDelta($sql_mock_tests);
+        dbDelta($sql_offers);
+        dbDelta($sql_student_services);
+        dbDelta($sql_student_tests);
+        dbDelta($sql_student_offers);
+        dbDelta($sql_sessions);
     }
 
     /**

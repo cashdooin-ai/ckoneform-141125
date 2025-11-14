@@ -1,0 +1,387 @@
+<?php
+/**
+ * Student Authentication System
+ * Separate from WordPress login
+ *
+ * @package CK_OneForm
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class CK_OneForm_Student_Auth {
+
+    /**
+     * Initialize authentication hooks
+     */
+    public static function init() {
+        add_action('wp_ajax_nopriv_ck_student_login', array(__CLASS__, 'ajax_login'));
+        add_action('wp_ajax_nopriv_ck_student_register', array(__CLASS__, 'ajax_register'));
+        add_action('wp_ajax_ck_student_logout', array(__CLASS__, 'ajax_logout'));
+        add_action('wp_ajax_nopriv_ck_student_logout', array(__CLASS__, 'ajax_logout'));
+        add_action('init', array(__CLASS__, 'check_session'));
+    }
+
+    /**
+     * Register a new student
+     */
+    public static function register_student($data) {
+        global $wpdb;
+
+        // Validate required fields
+        $required = array('full_name', 'email', 'mobile', 'password');
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                return array('success' => false, 'message' => ucfirst($field) . ' is required');
+            }
+        }
+
+        // Validate email
+        if (!is_email($data['email'])) {
+            return array('success' => false, 'message' => 'Invalid email address');
+        }
+
+        // Check if email already exists
+        $table = $wpdb->prefix . 'ck_oneform_students';
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table WHERE email = %s",
+            $data['email']
+        ));
+
+        if ($existing) {
+            return array('success' => false, 'message' => 'Email already registered');
+        }
+
+        // Generate unique student ID
+        $student_id = self::generate_student_id();
+
+        // Hash password
+        $hashed_password = wp_hash_password($data['password']);
+
+        // Insert student
+        $inserted = $wpdb->insert($table, array(
+            'student_id' => $student_id,
+            'full_name' => sanitize_text_field($data['full_name']),
+            'email' => sanitize_email($data['email']),
+            'mobile' => sanitize_text_field($data['mobile']),
+            'password' => $hashed_password,
+            'dob' => isset($data['dob']) ? sanitize_text_field($data['dob']) : null,
+            'gender' => isset($data['gender']) ? sanitize_text_field($data['gender']) : null,
+            'category' => isset($data['category']) ? sanitize_text_field($data['category']) : null,
+            'address' => isset($data['address']) ? sanitize_textarea_field($data['address']) : null,
+            'state' => isset($data['state']) ? sanitize_text_field($data['state']) : null,
+            'city' => isset($data['city']) ? sanitize_text_field($data['city']) : null,
+            'pincode' => isset($data['pincode']) ? sanitize_text_field($data['pincode']) : null,
+        ));
+
+        if ($inserted) {
+            $student_data = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table WHERE id = %d",
+                $wpdb->insert_id
+            ));
+
+            // Send welcome email
+            self::send_welcome_email($student_data);
+
+            return array(
+                'success' => true,
+                'message' => 'Registration successful! Please login.',
+                'student_id' => $student_id
+            );
+        }
+
+        return array('success' => false, 'message' => 'Registration failed. Please try again.');
+    }
+
+    /**
+     * Login student
+     */
+    public static function login_student($email, $password) {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'ck_oneform_students';
+
+        // Get student by email
+        $student = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table WHERE email = %s AND status = 'active'",
+            $email
+        ));
+
+        if (!$student) {
+            return array('success' => false, 'message' => 'Invalid email or password');
+        }
+
+        // Verify password
+        if (!wp_check_password($password, $student->password)) {
+            return array('success' => false, 'message' => 'Invalid email or password');
+        }
+
+        // Create session
+        $session_token = self::create_session($student->id);
+
+        if ($session_token) {
+            // Update last login
+            $wpdb->update($table, array(
+                'last_login' => current_time('mysql')
+            ), array('id' => $student->id));
+
+            return array(
+                'success' => true,
+                'message' => 'Login successful!',
+                'student' => array(
+                    'id' => $student->id,
+                    'student_id' => $student->student_id,
+                    'full_name' => $student->full_name,
+                    'email' => $student->email,
+                    'mobile' => $student->mobile,
+                ),
+                'session_token' => $session_token
+            );
+        }
+
+        return array('success' => false, 'message' => 'Failed to create session');
+    }
+
+    /**
+     * Create session for student
+     */
+    private static function create_session($student_id) {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'ck_oneform_student_sessions';
+        $session_token = bin2hex(random_bytes(32));
+        $expires_at = date('Y-m-d H:i:s', strtotime('+7 days'));
+
+        $inserted = $wpdb->insert($table, array(
+            'student_id' => $student_id,
+            'session_token' => $session_token,
+            'ip_address' => self::get_ip_address(),
+            'user_agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : '',
+            'expires_at' => $expires_at
+        ));
+
+        if ($inserted) {
+            // Set cookie
+            setcookie('ck_student_session', $session_token, strtotime('+7 days'), COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+            return $session_token;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if student is logged in
+     */
+    public static function is_student_logged_in() {
+        return isset($_COOKIE['ck_student_session']) && self::validate_session($_COOKIE['ck_student_session']);
+    }
+
+    /**
+     * Get current logged in student
+     */
+    public static function get_current_student() {
+        if (!isset($_COOKIE['ck_student_session'])) {
+            return false;
+        }
+
+        global $wpdb;
+        $sessions_table = $wpdb->prefix . 'ck_oneform_student_sessions';
+        $students_table = $wpdb->prefix . 'ck_oneform_students';
+
+        $student = $wpdb->get_row($wpdb->prepare(
+            "SELECT s.* FROM $students_table s
+            INNER JOIN $sessions_table sess ON s.id = sess.student_id
+            WHERE sess.session_token = %s
+            AND sess.expires_at > NOW()
+            AND s.status = 'active'",
+            $_COOKIE['ck_student_session']
+        ));
+
+        return $student ?: false;
+    }
+
+    /**
+     * Validate session
+     */
+    private static function validate_session($token) {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'ck_oneform_student_sessions';
+
+        $valid = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table
+            WHERE session_token = %s
+            AND expires_at > NOW()",
+            $token
+        ));
+
+        return $valid > 0;
+    }
+
+    /**
+     * Logout student
+     */
+    public static function logout_student() {
+        if (isset($_COOKIE['ck_student_session'])) {
+            global $wpdb;
+            $table = $wpdb->prefix . 'ck_oneform_student_sessions';
+
+            // Delete session
+            $wpdb->delete($table, array('session_token' => $_COOKIE['ck_student_session']));
+
+            // Delete cookie
+            setcookie('ck_student_session', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN);
+            unset($_COOKIE['ck_student_session']);
+        }
+
+        return array('success' => true, 'message' => 'Logged out successfully');
+    }
+
+    /**
+     * Check session on init
+     */
+    public static function check_session() {
+        if (isset($_COOKIE['ck_student_session'])) {
+            if (!self::validate_session($_COOKIE['ck_student_session'])) {
+                // Invalid or expired session, clear cookie
+                setcookie('ck_student_session', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN);
+                unset($_COOKIE['ck_student_session']);
+            }
+        }
+    }
+
+    /**
+     * AJAX Login Handler
+     */
+    public static function ajax_login() {
+        check_ajax_referer('ck-student-auth', 'nonce');
+
+        $email = sanitize_email($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        if (empty($email) || empty($password)) {
+            wp_send_json_error(array('message' => 'Email and password are required'));
+        }
+
+        $result = self::login_student($email, $password);
+
+        if ($result['success']) {
+            wp_send_json_success($result);
+        } else {
+            wp_send_json_error($result);
+        }
+    }
+
+    /**
+     * AJAX Registration Handler
+     */
+    public static function ajax_register() {
+        check_ajax_referer('ck-student-auth', 'nonce');
+
+        $data = array(
+            'full_name' => sanitize_text_field($_POST['full_name'] ?? ''),
+            'email' => sanitize_email($_POST['email'] ?? ''),
+            'mobile' => sanitize_text_field($_POST['mobile'] ?? ''),
+            'password' => $_POST['password'] ?? '',
+            'dob' => sanitize_text_field($_POST['dob'] ?? ''),
+            'gender' => sanitize_text_field($_POST['gender'] ?? ''),
+            'category' => sanitize_text_field($_POST['category'] ?? ''),
+        );
+
+        $result = self::register_student($data);
+
+        if ($result['success']) {
+            wp_send_json_success($result);
+        } else {
+            wp_send_json_error($result);
+        }
+    }
+
+    /**
+     * AJAX Logout Handler
+     */
+    public static function ajax_logout() {
+        $result = self::logout_student();
+        wp_send_json_success($result);
+    }
+
+    /**
+     * Generate unique student ID
+     */
+    private static function generate_student_id() {
+        $prefix = 'STU' . date('Y');
+        $random = str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+        return $prefix . $random;
+    }
+
+    /**
+     * Get IP Address
+     */
+    private static function get_ip_address() {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            return $_SERVER['REMOTE_ADDR'] ?? '';
+        }
+    }
+
+    /**
+     * Send welcome email
+     */
+    private static function send_welcome_email($student) {
+        $to = $student->email;
+        $subject = 'Welcome to CollegeKampus OneForm';
+        $message = "Hello {$student->full_name},\n\n";
+        $message .= "Welcome to CollegeKampus OneForm!\n\n";
+        $message .= "Your Student ID: {$student->student_id}\n";
+        $message .= "Email: {$student->email}\n\n";
+        $message .= "You can now login to your dashboard and start applying to colleges.\n\n";
+        $message .= "Login here: " . home_url('/student-login/') . "\n\n";
+        $message .= "Thank you!\nCollegeKampus Team";
+
+        wp_mail($to, $subject, $message);
+    }
+
+    /**
+     * Get student by ID
+     */
+    public static function get_student_by_id($student_id) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'ck_oneform_students';
+
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table WHERE id = %d",
+            $student_id
+        ));
+    }
+
+    /**
+     * Update student profile
+     */
+    public static function update_student_profile($student_id, $data) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'ck_oneform_students';
+
+        $update_data = array();
+
+        $allowed_fields = array('full_name', 'mobile', 'dob', 'gender', 'category', 'address', 'state', 'city', 'pincode', 'photo_url');
+
+        foreach ($allowed_fields as $field) {
+            if (isset($data[$field])) {
+                $update_data[$field] = sanitize_text_field($data[$field]);
+            }
+        }
+
+        if (empty($update_data)) {
+            return false;
+        }
+
+        return $wpdb->update($table, $update_data, array('id' => $student_id));
+    }
+}
+
+// Initialize
+CK_OneForm_Student_Auth::init();
