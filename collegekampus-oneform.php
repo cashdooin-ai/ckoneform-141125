@@ -157,9 +157,21 @@ class CK_OneForm {
         wp_enqueue_style('ck-oneform-frontend', CK_ONEFORM_PLUGIN_URL . 'assets/css/frontend.css', array(), CK_ONEFORM_VERSION);
         wp_enqueue_script('ck-oneform-frontend', CK_ONEFORM_PLUGIN_URL . 'assets/js/frontend.js', array('jquery'), CK_ONEFORM_VERSION, true);
 
+        // Enqueue modern homepage styles and scripts on homepage
+        if (is_page() && has_shortcode(get_post()->post_content, 'ck_oneform_home')) {
+            wp_enqueue_style('ck-oneform-home-modern', CK_ONEFORM_PLUGIN_URL . 'assets/css/home-modern.css', array(), CK_ONEFORM_VERSION);
+            wp_enqueue_script('ck-oneform-home-modern', CK_ONEFORM_PLUGIN_URL . 'assets/js/home-modern.js', array('jquery'), CK_ONEFORM_VERSION, true);
+        }
+
+        // Enqueue multi-college selection scripts on application page
+        if (is_page() && (has_shortcode(get_post()->post_content, 'ck_oneform_application') || has_shortcode(get_post()->post_content, 'ck_oneform_multi_college'))) {
+            wp_enqueue_script('ck-oneform-multi-college', CK_ONEFORM_PLUGIN_URL . 'assets/js/multi-college-selection.js', array('jquery'), CK_ONEFORM_VERSION, true);
+        }
+
         wp_localize_script('ck-oneform-frontend', 'ckOneForm', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('ck-oneform-nonce')
+            'nonce' => wp_create_nonce('ck-oneform-nonce'),
+            'noCollegesSelected' => __('Please select at least one college to apply to.', 'ck-oneform')
         ));
     }
 

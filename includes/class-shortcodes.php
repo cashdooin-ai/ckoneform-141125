@@ -26,11 +26,16 @@ class CK_OneForm_Shortcodes {
     }
 
     /**
-     * Home page shortcode
+     * Home page shortcode - Uses modern template
      */
     public static function home_page($atts) {
+        // Use modern template
+        $template = file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/home-modern.php')
+            ? 'templates/frontend/home-modern.php'
+            : 'templates/frontend/home.php';
+
         ob_start();
-        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/home.php';
+        include CK_ONEFORM_PLUGIN_DIR . $template;
         return ob_get_clean();
     }
 
