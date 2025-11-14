@@ -1,0 +1,210 @@
+/**
+ * Frontend CSS - Fixed for white page issue
+ * Added !important to override theme conflicts
+ */
+
+/* Reset for OneForm sections */
+.ck-oneform-home-debug {
+    background: #f0f0f0 !important;
+    padding: 40px 20px !important;
+    min-height: 100vh !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.ck-oneform-home-debug * {
+    box-sizing: border-box !important;
+}
+
+.ck-oneform-home-debug h1,
+.ck-oneform-home-debug h2,
+.ck-oneform-home-debug h3,
+.ck-oneform-home-debug p,
+.ck-oneform-home-debug ul,
+.ck-oneform-home-debug li {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: inherit !important;
+}
+
+.ck-oneform-home-debug h1 {
+    font-size: 2rem !important;
+    color: #333 !important;
+    margin-bottom: 20px !important;
+}
+
+.ck-oneform-home-debug h2 {
+    font-size: 1.5rem !important;
+    color: #333 !important;
+    margin-bottom: 15px !important;
+}
+
+.ck-oneform-home-debug h3 {
+    font-size: 1.2rem !important;
+    color: #333 !important;
+    margin-bottom: 10px !important;
+}
+
+.ck-oneform-home-debug p {
+    margin-bottom: 10px !important;
+    color: #666 !important;
+    line-height: 1.6 !important;
+}
+
+.ck-oneform-home-debug ul {
+    list-style: none !important;
+    padding-left: 0 !important;
+}
+
+.ck-oneform-home-debug li {
+    padding: 5px 0 !important;
+    color: #333 !important;
+}
+
+/* Ensure white sections have background */
+.ck-oneform-home-debug > div {
+    background: white !important;
+    padding: 20px !important;
+    margin: 20px 0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Links */
+.ck-oneform-home-debug a {
+    text-decoration: none !important;
+    display: inline-block !important;
+}
+
+/* Grid fix */
+.ck-oneform-home-debug [style*="display: grid"] {
+    display: grid !important;
+    gap: 20px !important;
+}
+
+/* Flex fix */
+.ck-oneform-home-debug [style*="display: flex"] {
+    display: flex !important;
+    gap: 20px !important;
+}
+
+/* Text center */
+.ck-oneform-home-debug [style*="text-align: center"] {
+    text-align: center !important;
+}
+
+/* Modern homepage fixes */
+.ck-oneform-modern-home {
+    background: white !important;
+    min-height: 100vh !important;
+}
+
+.ck-oneform-modern-home section {
+    width: 100% !important;
+    clear: both !important;
+    overflow: hidden !important;
+}
+
+.ck-oneform-modern-home .container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+    background: transparent !important;
+}
+
+/* Fix white sections in modern homepage */
+.hero-section,
+.trust-badges,
+.how-it-works-section,
+.features-section,
+.popular-colleges-section,
+.testimonials-section,
+.cta-section,
+.faq-section {
+    background-color: inherit !important;
+    padding: 60px 0 !important;
+    width: 100% !important;
+}
+
+/* Ensure backgrounds show */
+.how-it-works-section {
+    background: #f8f9fa !important;
+}
+
+.features-section {
+    background: white !important;
+}
+
+.popular-colleges-section {
+    background: #f8f9fa !important;
+}
+
+.testimonials-section {
+    background: white !important;
+}
+
+/* Fix for theme conflicts */
+.ck-oneform-modern-home p,
+.ck-oneform-modern-home h1,
+.ck-oneform-modern-home h2,
+.ck-oneform-modern-home h3,
+.ck-oneform-modern-home div {
+    background: transparent !important;
+}
+
+.ck-oneform-modern-home .hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+.ck-oneform-modern-home .cta-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+/* Cards and boxes should have backgrounds */
+.step-card,
+.feature-card,
+.college-card-mini,
+.testimonial-card,
+.faq-item {
+    background: white !important;
+}
+
+/* Fix invisible text */
+.ck-oneform-modern-home * {
+    color: inherit !important;
+}
+
+.ck-oneform-modern-home .hero-section * {
+    color: white !important;
+}
+
+.ck-oneform-modern-home .cta-section * {
+    color: white !important;
+}
+
+.ck-oneform-modern-home h1,
+.ck-oneform-modern-home h2,
+.ck-oneform-modern-home h3 {
+    color: #2d3748 !important;
+}
+
+.ck-oneform-modern-home .hero-section h1,
+.ck-oneform-modern-home .hero-section h2,
+.ck-oneform-modern-home .hero-section h3,
+.ck-oneform-modern-home .cta-section h1,
+.ck-oneform-modern-home .cta-section h2,
+.ck-oneform-modern-home .cta-section h3 {
+    color: white !important;
+}
+
+/* Make sure everything is visible */
+.ck-oneform-modern-home section,
+.ck-oneform-modern-home div,
+.ck-oneform-modern-home p,
+.ck-oneform-modern-home h1,
+.ck-oneform-modern-home h2,
+.ck-oneform-modern-home h3 {
+    opacity: 1 !important;
+    visibility: visible !important;
+}

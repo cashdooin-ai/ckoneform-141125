@@ -154,17 +154,22 @@ class CK_OneForm {
      * Enqueue frontend scripts and styles
      */
     public function frontend_enqueue_scripts() {
+        // Load base styles
         wp_enqueue_style('ck-oneform-frontend', CK_ONEFORM_PLUGIN_URL . 'assets/css/frontend.css', array(), CK_ONEFORM_VERSION);
+
+        // Load fixes CSS with high priority to override theme conflicts
+        wp_enqueue_style('ck-oneform-frontend-fixes', CK_ONEFORM_PLUGIN_URL . 'assets/css/frontend-fixes.css', array('ck-oneform-frontend'), CK_ONEFORM_VERSION, 'all');
+
         wp_enqueue_script('ck-oneform-frontend', CK_ONEFORM_PLUGIN_URL . 'assets/js/frontend.js', array('jquery'), CK_ONEFORM_VERSION, true);
 
         // Enqueue modern homepage styles and scripts on homepage
-        if (is_page() && has_shortcode(get_post()->post_content, 'ck_oneform_home')) {
-            wp_enqueue_style('ck-oneform-home-modern', CK_ONEFORM_PLUGIN_URL . 'assets/css/home-modern.css', array(), CK_ONEFORM_VERSION);
+        if (is_page() && get_post() && has_shortcode(get_post()->post_content, 'ck_oneform_home')) {
+            wp_enqueue_style('ck-oneform-home-modern', CK_ONEFORM_PLUGIN_URL . 'assets/css/home-modern.css', array('ck-oneform-frontend'), CK_ONEFORM_VERSION);
             wp_enqueue_script('ck-oneform-home-modern', CK_ONEFORM_PLUGIN_URL . 'assets/js/home-modern.js', array('jquery'), CK_ONEFORM_VERSION, true);
         }
 
         // Enqueue multi-college selection scripts on application page
-        if (is_page() && (has_shortcode(get_post()->post_content, 'ck_oneform_application') || has_shortcode(get_post()->post_content, 'ck_oneform_multi_college'))) {
+        if (is_page() && get_post() && (has_shortcode(get_post()->post_content, 'ck_oneform_application') || has_shortcode(get_post()->post_content, 'ck_oneform_multi_college'))) {
             wp_enqueue_script('ck-oneform-multi-college', CK_ONEFORM_PLUGIN_URL . 'assets/js/multi-college-selection.js', array('jquery'), CK_ONEFORM_VERSION, true);
         }
 
