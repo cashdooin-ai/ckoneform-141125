@@ -78,6 +78,7 @@ class CK_OneForm {
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-shortcodes.php';
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-emails.php';
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-pdf-generator.php';
+        require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-student-auth.php';
 
         // Admin includes
         if (is_admin()) {
