@@ -129,10 +129,17 @@ class CK_OneForm_Shortcodes {
         $atts = shortcode_atts(array(
             'limit' => 10,
             'type' => '',
+            'advanced' => 'yes', // Use advanced template by default
         ), $atts);
 
         ob_start();
-        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/colleges-list.php';
+
+        if ($atts['advanced'] === 'yes') {
+            include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/colleges-list-advanced.php';
+        } else {
+            include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/colleges-list.php';
+        }
+
         return ob_get_clean();
     }
 }

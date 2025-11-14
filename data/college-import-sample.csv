@@ -1,0 +1,6 @@
+name,short_name,type,category,state,city,nirf_rank,ck_rank,established,ownership,accreditation,courses,fees_range,website
+Indian Institute of Technology Madras,IIT Madras,IIT,Engineering,Tamil Nadu,Chennai,1,1,1959,Government,NAAC A++,"B.Tech, M.Tech, PhD",200000-300000,https://www.iitm.ac.in
+Indian Institute of Technology Delhi,IIT Delhi,IIT,Engineering,Delhi,New Delhi,2,2,1961,Government,NAAC A++,"B.Tech, M.Tech, PhD",200000-300000,https://www.iitd.ac.in
+National Institute of Technology Tiruchirappalli,NIT Trichy,NIT,Engineering,Tamil Nadu,Tiruchirappalli,9,9,1964,Government,NAAC A++,"B.Tech, M.Tech, PhD",150000-200000,https://www.nitt.edu
+Birla Institute of Technology and Science Pilani,BITS Pilani,Private,Engineering,Rajasthan,Pilani,25,25,1964,Private,NAAC A++,"B.Tech, M.Tech, PhD",400000-500000,https://www.bits-pilani.ac.in
+All India Institute of Medical Sciences Delhi,AIIMS Delhi,Medical,Medical,Delhi,New Delhi,1,1,1956,Government,NAAC A++,"MBBS, MD, MS",10000-50000,https://www.aiims.edu

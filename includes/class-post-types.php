@@ -12,6 +12,53 @@ if (!defined('ABSPATH')) {
 class CK_OneForm_Post_Types {
 
     /**
+     * Register custom taxonomies
+     */
+    public static function register_taxonomies() {
+        // College Type Taxonomy
+        register_taxonomy('college_type', 'ck_college', array(
+            'labels' => array(
+                'name' => __('College Types', 'ck-oneform'),
+                'singular_name' => __('College Type', 'ck-oneform'),
+                'search_items' => __('Search Types', 'ck-oneform'),
+                'all_items' => __('All Types', 'ck-oneform'),
+                'edit_item' => __('Edit Type', 'ck-oneform'),
+                'update_item' => __('Update Type', 'ck-oneform'),
+                'add_new_item' => __('Add New Type', 'ck-oneform'),
+                'new_item_name' => __('New Type Name', 'ck-oneform'),
+            ),
+            'hierarchical' => true,
+            'show_admin_column' => true,
+            'show_in_rest' => true,
+            'rewrite' => array('slug' => 'college-type'),
+        ));
+
+        // College State Taxonomy
+        register_taxonomy('college_state', 'ck_college', array(
+            'labels' => array(
+                'name' => __('States', 'ck-oneform'),
+                'singular_name' => __('State', 'ck-oneform'),
+            ),
+            'hierarchical' => true,
+            'show_admin_column' => true,
+            'show_in_rest' => true,
+            'rewrite' => array('slug' => 'state'),
+        ));
+
+        // College City Taxonomy
+        register_taxonomy('college_city', 'ck_college', array(
+            'labels' => array(
+                'name' => __('Cities', 'ck-oneform'),
+                'singular_name' => __('City', 'ck-oneform'),
+            ),
+            'hierarchical' => true,
+            'show_admin_column' => false,
+            'show_in_rest' => true,
+            'rewrite' => array('slug' => 'city'),
+        ));
+    }
+
+    /**
      * Register custom post types
      */
     public static function register_post_types() {

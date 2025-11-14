@@ -84,6 +84,7 @@ class CK_OneForm {
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-admin.php';
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-settings.php';
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-submissions.php';
+            require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-college-importer.php';
         }
 
         // Frontend includes
@@ -130,7 +131,8 @@ class CK_OneForm {
         // Register post types
         CK_OneForm_Post_Types::register_post_types();
 
-        // Register taxonomies
+        // Register taxonomies (from both classes)
+        CK_OneForm_Post_Types::register_taxonomies();
         CK_OneForm_Taxonomies::register_taxonomies();
 
         // Register shortcodes
