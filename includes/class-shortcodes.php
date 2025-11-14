@@ -23,6 +23,7 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_oneform_payment', array(__CLASS__, 'payment_page'));
         add_shortcode('ck_oneform_courses', array(__CLASS__, 'courses_list'));
         add_shortcode('ck_oneform_colleges', array(__CLASS__, 'colleges_list'));
+        add_shortcode('ck_oneform_apply', array(__CLASS__, 'enhanced_application'));
     }
 
     /**
@@ -140,6 +141,15 @@ class CK_OneForm_Shortcodes {
             include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/colleges-list.php';
         }
 
+        return ob_get_clean();
+    }
+
+    /**
+     * Enhanced multi-college application form
+     */
+    public static function enhanced_application($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/application-form-enhanced.php';
         return ob_get_clean();
     }
 }

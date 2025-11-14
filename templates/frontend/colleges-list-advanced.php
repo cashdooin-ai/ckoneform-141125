@@ -487,8 +487,9 @@ jQuery(document).ready(function($) {
         // Store selected colleges in sessionStorage
         sessionStorage.setItem('selectedColleges', JSON.stringify(selectedColleges));
 
-        // Redirect to application form
-        window.location.href = '<?php echo esc_url(home_url('/oneform-application/')); ?>?colleges=' + selectedColleges.map(c => c.id).join(',');
+        // Redirect to enhanced application form
+        // Note: Create a page with slug 'apply' and add shortcode [ck_oneform_apply]
+        window.location.href = '<?php echo esc_url(home_url('/apply/')); ?>?colleges=' + selectedColleges.map(c => c.id).join(',');
     });
 });
 </script>
