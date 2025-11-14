@@ -29,8 +29,8 @@ class CK_OneForm_Shortcodes {
      * Home page shortcode - Uses modern template
      */
     public static function home_page($atts) {
-        // Temporarily use debug template to find issue
-        $template = 'templates/frontend/home-debug.php';
+        // Use modern template with all features
+        $template = 'templates/frontend/home-modern.php';
 
         // Check if file exists
         if (!file_exists(CK_ONEFORM_PLUGIN_DIR . $template)) {
