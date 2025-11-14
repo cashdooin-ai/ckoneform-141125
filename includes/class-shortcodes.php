@@ -26,6 +26,7 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_oneform_apply', array(__CLASS__, 'enhanced_application'));
         add_shortcode('ck_student_login', array(__CLASS__, 'student_login'));
         add_shortcode('ck_student_dashboard', array(__CLASS__, 'student_dashboard'));
+        add_shortcode('ck_mega_menu', array(__CLASS__, 'mega_menu'));
     }
 
     /**
@@ -194,6 +195,15 @@ class CK_OneForm_Shortcodes {
             });
         });
         </script>';
+        return ob_get_clean();
+    }
+
+    /**
+     * Mega Menu shortcode
+     */
+    public static function mega_menu($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/mega-menu.php';
         return ob_get_clean();
     }
 }
