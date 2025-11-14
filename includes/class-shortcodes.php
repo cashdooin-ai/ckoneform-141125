@@ -29,13 +29,20 @@ class CK_OneForm_Shortcodes {
      * Home page shortcode - Uses modern template
      */
     public static function home_page($atts) {
-        // Use modern template
-        $template = file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/home-modern.php')
-            ? 'templates/frontend/home-modern.php'
-            : 'templates/frontend/home.php';
+        // Temporarily use debug template to find issue
+        $template = 'templates/frontend/home-debug.php';
+
+        // Check if file exists
+        if (!file_exists(CK_ONEFORM_PLUGIN_DIR . $template)) {
+            return '<p>Error: Template file not found at ' . CK_ONEFORM_PLUGIN_DIR . $template . '</p>';
+        }
 
         ob_start();
-        include CK_ONEFORM_PLUGIN_DIR . $template;
+        try {
+            include CK_ONEFORM_PLUGIN_DIR . $template;
+        } catch (Exception $e) {
+            return '<p>Error loading template: ' . $e->getMessage() . '</p>';
+        }
         return ob_get_clean();
     }
 
