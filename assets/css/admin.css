@@ -1,0 +1,255 @@
+/**
+ * CollegeKampus OneForm - Admin Styles
+ *
+ * @package CK_OneForm
+ */
+
+.ck-oneform-admin {
+    padding: 20px;
+}
+
+.ck-oneform-admin h1 {
+    margin-bottom: 30px;
+}
+
+/* Dashboard Stats */
+.ck-oneform-admin-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.ck-admin-stat-card {
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    padding: 20px;
+    border-left: 4px solid #667eea;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.ck-admin-stat-card.pending {
+    border-left-color: #ffc107;
+}
+
+.ck-admin-stat-card.approved {
+    border-left-color: #28a745;
+}
+
+.ck-admin-stat-card.rejected {
+    border-left-color: #dc3545;
+}
+
+.ck-admin-stat-card h3 {
+    margin: 0 0 10px;
+    font-size: 2rem;
+    color: #333;
+}
+
+.ck-admin-stat-card p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Tables */
+.ck-oneform-table-container {
+    background: white;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.ck-oneform-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ck-oneform-table th,
+.ck-oneform-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.ck-oneform-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.ck-oneform-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.approved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Buttons */
+.ck-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.ck-btn-primary {
+    background-color: #667eea;
+    color: white;
+}
+
+.ck-btn-primary:hover {
+    background-color: #5568d3;
+}
+
+.ck-btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.ck-btn-danger:hover {
+    background-color: #c82333;
+}
+
+.ck-btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* Settings Page */
+.ck-oneform-settings {
+    max-width: 800px;
+}
+
+.ck-settings-section {
+    background: white;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.ck-settings-section h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.ck-form-group {
+    margin-bottom: 20px;
+}
+
+.ck-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.ck-form-group input[type="text"],
+.ck-form-group input[type="email"],
+.ck-form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.ck-form-group input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.ck-form-group .description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Charts */
+.ck-chart-container {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ck-oneform-admin-stats {
+        flex-direction: column;
+    }
+
+    .ck-admin-stat-card {
+        min-width: 100%;
+    }
+}
+
+/* Application Details */
+.ck-application-details {
+    background: white;
+    padding: 25px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.ck-detail-row {
+    display: flex;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ck-detail-label {
+    flex: 0 0 200px;
+    font-weight: 600;
+    color: #333;
+}
+
+.ck-detail-value {
+    flex: 1;
+    color: #666;
+}
+
+/* Documents */
+.ck-documents-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ck-document-item {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ck-document-item a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.ck-document-item a:hover {
+    text-decoration: underline;
+}
