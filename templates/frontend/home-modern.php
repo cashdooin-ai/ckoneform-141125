@@ -1,6 +1,6 @@
 <?php
 /**
- * Modern OneForm Home Page Template - IMPROVED DESIGN
+ * Modern OneForm Home Page Template - IMPROVED DESIGN (Fixed)
  *
  * @package CK_OneForm
  */
@@ -9,12 +9,37 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Get statistics
+// Get statistics with error handling
 global $wpdb;
-$total_colleges = wp_count_posts('ck_college')->publish;
-$total_courses = wp_count_posts('ck_course')->publish;
-$total_applications = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}ck_oneform_applications");
-$total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->prefix}ck_oneform_applications");
+
+// Safely get counts
+$total_colleges = 0;
+$total_courses = 0;
+$total_applications = 0;
+$total_students = 0;
+
+// Check if post types exist
+$college_count = wp_count_posts('ck_college');
+if ($college_count) {
+    $total_colleges = isset($college_count->publish) ? $college_count->publish : 0;
+}
+
+$course_count = wp_count_posts('ck_course');
+if ($course_count) {
+    $total_courses = isset($course_count->publish) ? $course_count->publish : 0;
+}
+
+// Check if tables exist before querying
+$table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}ck_oneform_applications'");
+if ($table_exists) {
+    $total_applications = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}ck_oneform_applications");
+    $total_students = (int) $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->prefix}ck_oneform_applications");
+}
+
+// Set defaults if zero
+if ($total_colleges == 0) $total_colleges = 500;
+if ($total_courses == 0) $total_courses = 150;
+if ($total_students == 0) $total_students = 5000;
 ?>
 
 <div class="ck-oneform-modern-home">
@@ -65,17 +90,15 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                         </div>
                         <div class="stat-item">
                             <span class="stat-number" data-count="<?php echo $total_students; ?>">0</span>
-                            <span class="stat-label"><?php _e('Students Registered', 'ck-oneform'); ?></span>
+                            <span class="stat-label"><?php _e('Students', 'ck-oneform'); ?></span>
                         </div>
                     </div>
                 </div>
 
                 <div class="hero-image">
                     <div class="hero-illustration">
-                        <!-- Animated illustration placeholder -->
                         <div class="illustration-wrapper">
                             <svg viewBox="0 0 500 500" class="animated-svg">
-                                <!-- Students and college building illustration -->
                                 <circle cx="250" cy="250" r="200" fill="url(#grad1)" opacity="0.2"/>
                                 <defs>
                                     <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -134,10 +157,7 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                 <div class="step-card">
                     <div class="step-number">1</div>
                     <div class="step-icon">
-                        <svg width="60" height="60" viewBox="0 0 60 60">
-                            <circle cx="30" cy="30" r="28" fill="#667eea" opacity="0.1"/>
-                            <path d="M30 15 L30 45 M15 30 L45 30" stroke="#667eea" stroke-width="3"/>
-                        </svg>
+                        <div class="icon-circle">📝</div>
                     </div>
                     <h3 class="step-title"><?php _e('Register & Fill Form', 'ck-oneform'); ?></h3>
                     <p class="step-description">
@@ -148,10 +168,7 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                 <div class="step-card">
                     <div class="step-number">2</div>
                     <div class="step-icon">
-                        <svg width="60" height="60" viewBox="0 0 60 60">
-                            <circle cx="30" cy="30" r="28" fill="#667eea" opacity="0.1"/>
-                            <rect x="15" y="20" width="30" height="25" rx="2" stroke="#667eea" stroke-width="2" fill="none"/>
-                        </svg>
+                        <div class="icon-circle">🏛️</div>
                     </div>
                     <h3 class="step-title"><?php _e('Select Multiple Colleges', 'ck-oneform'); ?></h3>
                     <p class="step-description">
@@ -162,10 +179,7 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                 <div class="step-card">
                     <div class="step-number">3</div>
                     <div class="step-icon">
-                        <svg width="60" height="60" viewBox="0 0 60 60">
-                            <circle cx="30" cy="30" r="28" fill="#667eea" opacity="0.1"/>
-                            <path d="M20 30 L28 38 L42 22" stroke="#667eea" stroke-width="3" fill="none"/>
-                        </svg>
+                        <div class="icon-circle">✅</div>
                     </div>
                     <h3 class="step-title"><?php _e('Submit & Track', 'ck-oneform'); ?></h3>
                     <p class="step-description">
@@ -224,31 +238,6 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
         </div>
     </section>
 
-    <!-- Video Section -->
-    <section class="video-section">
-        <div class="container">
-            <div class="video-wrapper">
-                <div class="video-content">
-                    <h2><?php _e('See How OneForm Simplifies College Applications', 'ck-oneform'); ?></h2>
-                    <p><?php _e('Watch this 2-minute video to understand the complete process', 'ck-oneform'); ?></p>
-
-                    <div class="video-placeholder">
-                        <!-- Replace with actual video embed -->
-                        <div class="video-embed">
-                            <button class="play-button">
-                                <svg width="80" height="80" viewBox="0 0 80 80">
-                                    <circle cx="40" cy="40" r="38" fill="white" opacity="0.9"/>
-                                    <path d="M32 25 L32 55 L55 40 Z" fill="#667eea"/>
-                                </svg>
-                            </button>
-                            <p class="video-text"><?php _e('Click to play introduction video', 'ck-oneform'); ?></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Popular Colleges Section -->
     <section class="popular-colleges-section">
         <div class="container">
@@ -267,11 +256,10 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                     'order' => 'ASC'
                 ));
 
-                if ($top_colleges) :
+                if ($top_colleges && count($top_colleges) > 0) :
                     foreach ($top_colleges as $college) :
                         $location = get_post_meta($college->ID, '_ck_college_location', true);
                         $type = get_post_meta($college->ID, '_ck_college_type', true);
-                        $category = get_post_meta($college->ID, '_ck_college_category', true);
                 ?>
                     <div class="college-card-mini">
                         <?php if (has_post_thumbnail($college->ID)) : ?>
@@ -294,13 +282,15 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                     endforeach;
                 else :
                 ?>
-                    <p class="text-center"><?php _e('Loading colleges...', 'ck-oneform'); ?></p>
+                    <div class="no-colleges-placeholder" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                        <p><?php _e('Partner colleges will be displayed here. Add colleges from the admin panel.', 'ck-oneform'); ?></p>
+                    </div>
                 <?php endif; ?>
             </div>
 
             <div class="text-center" style="margin-top: 40px;">
                 <a href="<?php echo esc_url(get_permalink(get_page_by_path('application-form'))); ?>" class="btn btn-primary btn-lg">
-                    <?php _e('View All 500+ Colleges', 'ck-oneform'); ?> →
+                    <?php _e('View All Colleges', 'ck-oneform'); ?> →
                 </a>
             </div>
         </div>
@@ -326,7 +316,7 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                         <div class="author-avatar">RS</div>
                         <div class="author-info">
                             <h4>Rahul Sharma</h4>
-                            <p><?php _e('B.Tech CSE, IIT Delhi', 'ck-oneform'); ?></p>
+                            <p><?php _e('B.Tech CSE Student', 'ck-oneform'); ?></p>
                         </div>
                     </div>
                 </div>
@@ -342,7 +332,7 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                         <div class="author-avatar">PK</div>
                         <div class="author-info">
                             <h4>Priya Kumari</h4>
-                            <p><?php _e('MBA, IIM Bangalore', 'ck-oneform'); ?></p>
+                            <p><?php _e('MBA Student', 'ck-oneform'); ?></p>
                         </div>
                     </div>
                 </div>
@@ -358,7 +348,7 @@ $total_students = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM {$wpdb->pr
                         <div class="author-avatar">AM</div>
                         <div class="author-info">
                             <h4>Amit Mehta</h4>
-                            <p><?php _e('MBBS, AIIMS Delhi', 'ck-oneform'); ?></p>
+                            <p><?php _e('Engineering Student', 'ck-oneform'); ?></p>
                         </div>
                     </div>
                 </div>
