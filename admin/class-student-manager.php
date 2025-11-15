@@ -86,11 +86,14 @@ class CK_OneForm_Student_Manager {
         global $wpdb;
         $table = $wpdb->prefix . 'ck_oneform_students';
 
-        // Get students
-        $students = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC LIMIT 100");
-
-        // Check if table exists
+        // Check if table exists FIRST
         $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'");
+
+        // Only get students if table exists
+        $students = array();
+        if ($table_exists) {
+            $students = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC LIMIT 100");
+        }
 
         ?>
         <div class="wrap">
@@ -927,10 +930,24 @@ class CK_OneForm_Student_Manager {
             wp_die('Unauthorized');
         }
 
+        global $wpdb;
+        $wpdb->show_errors();
+
         // Force create all tables
         CK_OneForm_Database::force_create_tables();
 
-        wp_redirect(admin_url('admin.php?page=ck-student-portal&db_fixed=1'));
+        // Verify tables were created
+        $students_table = $wpdb->prefix . 'ck_oneform_students';
+        $sessions_table = $wpdb->prefix . 'ck_oneform_student_sessions';
+
+        $students_exists = $wpdb->get_var("SHOW TABLES LIKE '$students_table'");
+        $sessions_exists = $wpdb->get_var("SHOW TABLES LIKE '$sessions_table'");
+
+        if ($students_exists && $sessions_exists) {
+            wp_redirect(admin_url('admin.php?page=ck-student-portal&db_fixed=1'));
+        } else {
+            wp_redirect(admin_url('admin.php?page=ck-student-portal&db_error=1'));
+        }
         exit;
     }
 
@@ -942,6 +959,26 @@ class CK_OneForm_Student_Manager {
             echo '<div class="notice notice-success is-dismissible">';
             echo '<p><strong>✓ Database tables have been created successfully!</strong></p>';
             echo '<p>All OneForm database tables are now ready. You can now register students.</p>';
+            echo '</div>';
+        }
+
+        if (isset($_GET['db_error']) && $_GET['db_error'] == '1') {
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>✗ Database Error:</strong> Failed to create tables automatically.</p>';
+            echo '<p>Please try these steps:</p>';
+            echo '<ol>';
+            echo '<li>Check your database user has CREATE TABLE permissions</li>';
+            echo '<li>Check wp-config.php has correct database credentials</li>';
+            echo '<li>Check with your hosting provider about database permissions</li>';
+            echo '<li>Check WordPress debug.log file for detailed error messages</li>';
+            echo '</ol>';
+            echo '<p><strong>Database Details:</strong></p>';
+            echo '<ul>';
+            global $wpdb;
+            echo '<li>Database Name: ' . DB_NAME . '</li>';
+            echo '<li>Table Prefix: ' . $wpdb->prefix . '</li>';
+            echo '<li>Expected Student Table: ' . $wpdb->prefix . 'ck_oneform_students</li>';
+            echo '</ul>';
             echo '</div>';
         }
 

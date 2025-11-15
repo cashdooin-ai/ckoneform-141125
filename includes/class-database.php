@@ -17,6 +17,9 @@ class CK_OneForm_Database {
     public static function create_tables() {
         global $wpdb;
 
+        // Enable error display for debugging
+        $wpdb->show_errors();
+
         $charset_collate = $wpdb->get_charset_collate();
 
         // Students table (separate from WordPress users)
@@ -244,23 +247,7 @@ class CK_OneForm_Database {
             KEY expires_at (expires_at)
         ) $charset_collate;";
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-
-        // Try dbDelta first
-        dbDelta($sql_students);
-        dbDelta($sql_applications);
-        dbDelta($sql_submissions_meta);
-        dbDelta($sql_payments);
-        dbDelta($sql_documents);
-        dbDelta($sql_services);
-        dbDelta($sql_mock_tests);
-        dbDelta($sql_offers);
-        dbDelta($sql_student_services);
-        dbDelta($sql_student_tests);
-        dbDelta($sql_student_offers);
-        dbDelta($sql_sessions);
-
-        // Fallback: Create tables directly if dbDelta fails
+        // Direct table creation (more reliable than dbDelta)
         $wpdb->query($sql_students);
         $wpdb->query($sql_applications);
         $wpdb->query($sql_submissions_meta);
@@ -273,6 +260,11 @@ class CK_OneForm_Database {
         $wpdb->query($sql_student_tests);
         $wpdb->query($sql_student_offers);
         $wpdb->query($sql_sessions);
+
+        // Log any errors for debugging
+        if ($wpdb->last_error) {
+            error_log('OneForm DB Creation Error: ' . $wpdb->last_error);
+        }
     }
 
     /**
