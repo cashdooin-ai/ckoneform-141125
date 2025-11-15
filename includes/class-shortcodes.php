@@ -27,6 +27,7 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_student_login', array(__CLASS__, 'student_login'));
         add_shortcode('ck_student_dashboard', array(__CLASS__, 'student_dashboard'));
         add_shortcode('ck_mega_menu', array(__CLASS__, 'mega_menu'));
+        add_shortcode('ck_service_page', array(__CLASS__, 'service_page'));
     }
 
     /**
@@ -185,6 +186,20 @@ class CK_OneForm_Shortcodes {
     public static function mega_menu($atts) {
         ob_start();
         include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/mega-menu.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * Service Page shortcode
+     * Usage: [ck_service_page slug="mock-tests"] or pass ?service=mock-tests in URL
+     */
+    public static function service_page($atts) {
+        $atts = shortcode_atts(array(
+            'slug' => '',
+        ), $atts);
+
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/service-page.php';
         return ob_get_clean();
     }
 }
