@@ -61,6 +61,12 @@ class CK_OneForm_Student_Auth {
         // Hash password
         $hashed_password = wp_hash_password($data['password']);
 
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'");
+        if (!$table_exists) {
+            return array('success' => false, 'message' => 'Database error: Student table not found. Please contact administrator.');
+        }
+
         // Insert student
         $inserted = $wpdb->insert($table, array(
             'student_id' => $student_id,
@@ -68,13 +74,13 @@ class CK_OneForm_Student_Auth {
             'email' => sanitize_email($data['email']),
             'mobile' => sanitize_text_field($data['mobile']),
             'password' => $hashed_password,
-            'dob' => isset($data['dob']) ? sanitize_text_field($data['dob']) : null,
-            'gender' => isset($data['gender']) ? sanitize_text_field($data['gender']) : null,
-            'category' => isset($data['category']) ? sanitize_text_field($data['category']) : null,
-            'address' => isset($data['address']) ? sanitize_textarea_field($data['address']) : null,
-            'state' => isset($data['state']) ? sanitize_text_field($data['state']) : null,
-            'city' => isset($data['city']) ? sanitize_text_field($data['city']) : null,
-            'pincode' => isset($data['pincode']) ? sanitize_text_field($data['pincode']) : null,
+            'dob' => !empty($data['dob']) ? sanitize_text_field($data['dob']) : null,
+            'gender' => !empty($data['gender']) ? sanitize_text_field($data['gender']) : null,
+            'category' => !empty($data['category']) ? sanitize_text_field($data['category']) : null,
+            'address' => !empty($data['address']) ? sanitize_textarea_field($data['address']) : null,
+            'state' => !empty($data['state']) ? sanitize_text_field($data['state']) : null,
+            'city' => !empty($data['city']) ? sanitize_text_field($data['city']) : null,
+            'pincode' => !empty($data['pincode']) ? sanitize_text_field($data['pincode']) : null,
         ));
 
         if ($inserted) {
@@ -93,7 +99,9 @@ class CK_OneForm_Student_Auth {
             );
         }
 
-        return array('success' => false, 'message' => 'Registration failed. Please try again.');
+        // Get the actual error message
+        $error_message = $wpdb->last_error ? $wpdb->last_error : 'Registration failed. Please try again.';
+        return array('success' => false, 'message' => $error_message);
     }
 
     /**
@@ -279,24 +287,28 @@ class CK_OneForm_Student_Auth {
      * AJAX Registration Handler
      */
     public static function ajax_register() {
-        check_ajax_referer('ck-student-auth', 'nonce');
+        try {
+            check_ajax_referer('ck-student-auth', 'nonce');
 
-        $data = array(
-            'full_name' => sanitize_text_field($_POST['full_name'] ?? ''),
-            'email' => sanitize_email($_POST['email'] ?? ''),
-            'mobile' => sanitize_text_field($_POST['mobile'] ?? ''),
-            'password' => $_POST['password'] ?? '',
-            'dob' => sanitize_text_field($_POST['dob'] ?? ''),
-            'gender' => sanitize_text_field($_POST['gender'] ?? ''),
-            'category' => sanitize_text_field($_POST['category'] ?? ''),
-        );
+            $data = array(
+                'full_name' => sanitize_text_field($_POST['full_name'] ?? ''),
+                'email' => sanitize_email($_POST['email'] ?? ''),
+                'mobile' => sanitize_text_field($_POST['mobile'] ?? ''),
+                'password' => $_POST['password'] ?? '',
+                'dob' => sanitize_text_field($_POST['dob'] ?? ''),
+                'gender' => sanitize_text_field($_POST['gender'] ?? ''),
+                'category' => sanitize_text_field($_POST['category'] ?? ''),
+            );
 
-        $result = self::register_student($data);
+            $result = self::register_student($data);
 
-        if ($result['success']) {
-            wp_send_json_success($result);
-        } else {
-            wp_send_json_error($result);
+            if ($result['success']) {
+                wp_send_json_success($result);
+            } else {
+                wp_send_json_error($result);
+            }
+        } catch (Exception $e) {
+            wp_send_json_error(array('message' => 'Error: ' . $e->getMessage()));
         }
     }
 
