@@ -89,6 +89,9 @@ class CK_OneForm {
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-student-manager.php';
         }
 
+        // Debug page (available to all users for troubleshooting)
+        require_once CK_ONEFORM_PLUGIN_DIR . 'admin/debug-page.php';
+
         // Frontend includes
         require_once CK_ONEFORM_PLUGIN_DIR . 'public/class-frontend.php';
         require_once CK_ONEFORM_PLUGIN_DIR . 'public/class-user-dashboard.php';
