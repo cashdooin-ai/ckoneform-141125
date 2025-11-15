@@ -175,26 +175,7 @@ class CK_OneForm_Shortcodes {
         }
 
         ob_start();
-        // Dashboard template will be created next
-        echo '<div class="ck-student-dashboard">';
-        echo '<h1>🎓 Student Dashboard</h1>';
-        $student = CK_OneForm_Student_Auth::get_current_student();
-        echo '<p>Welcome, ' . esc_html($student->full_name) . '!</p>';
-        echo '<p>Student ID: ' . esc_html($student->student_id) . '</p>';
-        echo '<a href="#" id="student-logout">Logout</a>';
-        echo '</div>';
-        echo '<script>
-        jQuery(document).ready(function($) {
-            $("#student-logout").on("click", function(e) {
-                e.preventDefault();
-                $.post("' . admin_url('admin-ajax.php') . '", {
-                    action: "ck_student_logout"
-                }, function() {
-                    window.location.href = "' . home_url('/student-login/') . '";
-                });
-            });
-        });
-        </script>';
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/student-dashboard-full.php';
         return ob_get_clean();
     }
 

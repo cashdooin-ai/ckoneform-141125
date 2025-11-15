@@ -20,6 +20,8 @@ class CK_OneForm_Student_Auth {
         add_action('wp_ajax_nopriv_ck_student_register', array(__CLASS__, 'ajax_register'));
         add_action('wp_ajax_ck_student_logout', array(__CLASS__, 'ajax_logout'));
         add_action('wp_ajax_nopriv_ck_student_logout', array(__CLASS__, 'ajax_logout'));
+        add_action('wp_ajax_ck_update_student_profile', array(__CLASS__, 'ajax_update_profile'));
+        add_action('wp_ajax_ck_change_student_password', array(__CLASS__, 'ajax_change_password'));
         add_action('init', array(__CLASS__, 'check_session'));
     }
 
@@ -380,6 +382,91 @@ class CK_OneForm_Student_Auth {
         }
 
         return $wpdb->update($table, $update_data, array('id' => $student_id));
+    }
+
+    /**
+     * AJAX Update Profile Handler
+     */
+    public static function ajax_update_profile() {
+        check_ajax_referer('update-profile', 'nonce');
+
+        if (!self::is_student_logged_in()) {
+            wp_send_json_error(array('message' => 'Not logged in'));
+        }
+
+        $student = self::get_current_student();
+
+        $data = array(
+            'full_name' => sanitize_text_field($_POST['full_name'] ?? ''),
+            'mobile' => sanitize_text_field($_POST['mobile'] ?? ''),
+            'dob' => sanitize_text_field($_POST['dob'] ?? ''),
+            'gender' => sanitize_text_field($_POST['gender'] ?? ''),
+            'category' => sanitize_text_field($_POST['category'] ?? ''),
+            'address' => sanitize_textarea_field($_POST['address'] ?? ''),
+            'state' => sanitize_text_field($_POST['state'] ?? ''),
+            'city' => sanitize_text_field($_POST['city'] ?? ''),
+            'pincode' => sanitize_text_field($_POST['pincode'] ?? ''),
+        );
+
+        $result = self::update_student_profile($student->id, $data);
+
+        if ($result !== false) {
+            wp_send_json_success(array('message' => 'Profile updated successfully!'));
+        } else {
+            wp_send_json_error(array('message' => 'Failed to update profile'));
+        }
+    }
+
+    /**
+     * AJAX Change Password Handler
+     */
+    public static function ajax_change_password() {
+        check_ajax_referer('change-password', 'nonce');
+
+        if (!self::is_student_logged_in()) {
+            wp_send_json_error(array('message' => 'Not logged in'));
+        }
+
+        $student = self::get_current_student();
+
+        $current_password = $_POST['current_password'] ?? '';
+        $new_password = $_POST['new_password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+
+        // Validate inputs
+        if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
+            wp_send_json_error(array('message' => 'All password fields are required'));
+        }
+
+        if ($new_password !== $confirm_password) {
+            wp_send_json_error(array('message' => 'New passwords do not match'));
+        }
+
+        if (strlen($new_password) < 6) {
+            wp_send_json_error(array('message' => 'Password must be at least 6 characters'));
+        }
+
+        // Verify current password
+        if (!wp_check_password($current_password, $student->password)) {
+            wp_send_json_error(array('message' => 'Current password is incorrect'));
+        }
+
+        // Update password
+        global $wpdb;
+        $table = $wpdb->prefix . 'ck_oneform_students';
+        $hashed_password = wp_hash_password($new_password);
+
+        $result = $wpdb->update(
+            $table,
+            array('password' => $hashed_password),
+            array('id' => $student->id)
+        );
+
+        if ($result !== false) {
+            wp_send_json_success(array('message' => 'Password changed successfully!'));
+        } else {
+            wp_send_json_error(array('message' => 'Failed to change password'));
+        }
     }
 }
 
