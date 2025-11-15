@@ -24,6 +24,8 @@ class CK_OneForm_Student_Manager {
         add_action('admin_post_ck_save_offer', array(__CLASS__, 'save_offer'));
         add_action('admin_post_ck_delete_offer', array(__CLASS__, 'delete_offer'));
         add_action('admin_post_ck_assign_offer_to_student', array(__CLASS__, 'assign_offer_to_student'));
+        add_action('admin_post_ck_fix_database_tables', array(__CLASS__, 'fix_database_tables'));
+        add_action('admin_notices', array(__CLASS__, 'admin_notices'));
     }
 
     /**
@@ -87,9 +89,32 @@ class CK_OneForm_Student_Manager {
         // Get students
         $students = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC LIMIT 100");
 
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'");
+
         ?>
         <div class="wrap">
             <h1>Student Portal - All Students</h1>
+
+            <?php if (!$table_exists): ?>
+                <div class="notice notice-error">
+                    <p><strong>⚠ Database Error:</strong> Student tables are missing!</p>
+                    <p>
+                        <a href="<?php echo admin_url('admin-post.php?action=ck_fix_database_tables'); ?>"
+                           class="button button-primary button-large">
+                            🔧 Fix Database Tables Now
+                        </a>
+                    </p>
+                </div>
+            <?php else: ?>
+                <p>
+                    <a href="<?php echo admin_url('admin-post.php?action=ck_fix_database_tables'); ?>"
+                       class="button"
+                       onclick="return confirm('This will recreate all database tables. Continue?');">
+                        🔧 Recreate Database Tables
+                    </a>
+                </p>
+            <?php endif; ?>
 
             <table class="wp-list-table widefat fixed striped">
                 <thead>
@@ -892,6 +917,45 @@ class CK_OneForm_Student_Manager {
 
         wp_redirect(admin_url('admin.php?page=ck-offers&success=assigned'));
         exit;
+    }
+
+    /**
+     * Fix database tables handler
+     */
+    public static function fix_database_tables() {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+
+        // Force create all tables
+        CK_OneForm_Database::force_create_tables();
+
+        wp_redirect(admin_url('admin.php?page=ck-student-portal&db_fixed=1'));
+        exit;
+    }
+
+    /**
+     * Admin notices
+     */
+    public static function admin_notices() {
+        if (isset($_GET['db_fixed']) && $_GET['db_fixed'] == '1') {
+            echo '<div class="notice notice-success is-dismissible">';
+            echo '<p><strong>✓ Database tables have been created successfully!</strong></p>';
+            echo '<p>All OneForm database tables are now ready. You can now register students.</p>';
+            echo '</div>';
+        }
+
+        if (isset($_GET['success']) && $_GET['success'] == 'assigned') {
+            echo '<div class="notice notice-success is-dismissible">';
+            echo '<p><strong>✓ Offers assigned successfully!</strong></p>';
+            echo '</div>';
+        }
+
+        if (isset($_GET['error']) && $_GET['error'] == 'no_students') {
+            echo '<div class="notice notice-error is-dismissible">';
+            echo '<p><strong>✗ Error:</strong> Please select at least one student.</p>';
+            echo '</div>';
+        }
     }
 }
 

@@ -245,6 +245,8 @@ class CK_OneForm_Database {
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+
+        // Try dbDelta first
         dbDelta($sql_students);
         dbDelta($sql_applications);
         dbDelta($sql_submissions_meta);
@@ -257,6 +259,49 @@ class CK_OneForm_Database {
         dbDelta($sql_student_tests);
         dbDelta($sql_student_offers);
         dbDelta($sql_sessions);
+
+        // Fallback: Create tables directly if dbDelta fails
+        $wpdb->query($sql_students);
+        $wpdb->query($sql_applications);
+        $wpdb->query($sql_submissions_meta);
+        $wpdb->query($sql_payments);
+        $wpdb->query($sql_documents);
+        $wpdb->query($sql_services);
+        $wpdb->query($sql_mock_tests);
+        $wpdb->query($sql_offers);
+        $wpdb->query($sql_student_services);
+        $wpdb->query($sql_student_tests);
+        $wpdb->query($sql_student_offers);
+        $wpdb->query($sql_sessions);
+    }
+
+    /**
+     * Force create tables (manual trigger)
+     */
+    public static function force_create_tables() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+
+        // Drop and recreate approach for manual fix
+        $tables = array(
+            'ck_oneform_students',
+            'ck_oneform_applications',
+            'ck_oneform_submissions_meta',
+            'ck_oneform_payments',
+            'ck_oneform_documents',
+            'ck_oneform_services',
+            'ck_oneform_mock_tests',
+            'ck_oneform_offers',
+            'ck_oneform_student_services',
+            'ck_oneform_student_tests',
+            'ck_oneform_student_offers',
+            'ck_oneform_student_sessions',
+        );
+
+        // Just call create_tables which now has fallback
+        self::create_tables();
+
+        return true;
     }
 
     /**
