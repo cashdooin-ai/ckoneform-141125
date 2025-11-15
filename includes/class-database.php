@@ -17,8 +17,8 @@ class CK_OneForm_Database {
     public static function create_tables() {
         global $wpdb;
 
-        // Enable error display for debugging
-        $wpdb->show_errors();
+        // Suppress errors during activation to prevent "unexpected output" error
+        $wpdb->suppress_errors();
 
         $charset_collate = $wpdb->get_charset_collate();
 

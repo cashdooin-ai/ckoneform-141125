@@ -931,7 +931,6 @@ class CK_OneForm_Student_Manager {
         }
 
         global $wpdb;
-        $wpdb->show_errors();
 
         // Force create all tables
         CK_OneForm_Database::force_create_tables();
