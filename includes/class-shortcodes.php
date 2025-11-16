@@ -29,6 +29,7 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_mega_menu', array(__CLASS__, 'mega_menu'));
         add_shortcode('ck_service_page', array(__CLASS__, 'service_page'));
         add_shortcode('ck_lead_capture_form', array(__CLASS__, 'lead_capture_form'));
+        add_shortcode('ck_take_test', array(__CLASS__, 'take_test'));
     }
 
     /**
@@ -226,6 +227,17 @@ class CK_OneForm_Shortcodes {
 
         ob_start();
         include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/service-page.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * Test taking interface
+     * Usage: [ck_take_test]
+     * Note: Requires ?test_id=X in URL
+     */
+    public static function take_test($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/test-taking.php';
         return ob_get_clean();
     }
 }

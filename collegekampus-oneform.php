@@ -89,6 +89,7 @@ class CK_OneForm {
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-student-manager.php';
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-dashboard-settings.php';
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-lead-manager.php';
+            require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-mock-test-generator.php';
         }
 
         // Debug page (available to all users for troubleshooting)
