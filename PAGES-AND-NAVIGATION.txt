@@ -1,0 +1,340 @@
+================================================================================
+COLLEGEKAMPUS ONEFORM - PAGES & NAVIGATION MAP
+================================================================================
+
+FRONTEND PAGES (Auto-created on plugin activation)
+================================================================================
+
+Homepage / Landing
+├─ Slug: /oneform-home/
+├─ Shortcode: [ck_oneform_home]
+├─ Template: templates/frontend/home-modern.php
+├─ Purpose: Landing page with features, statistics, courses preview
+├─ Login Required: NO
+└─ Route: → Application Form, My Dashboard
+
+Student Registration
+├─ Slug: /student-registration/
+├─ Shortcode: [ck_oneform_registration]
+├─ Template: templates/frontend/registration-form.php
+├─ Purpose: New user account creation with email verification
+├─ Login Required: NO (Redirects if logged in)
+└─ Route: → Auto-login → My Applications → Apply to Colleges
+
+Application Form
+├─ Slug: /application-form/
+├─ Shortcode: [ck_oneform_application]
+├─ Template: templates/frontend/application-form.php
+├─ Purpose: Multi-section college application (Personal, Academic, Documents)
+├─ Features: Multi-college selection, file upload, course selection
+├─ Login Required: YES
+└─ Route: → Submit → Get Application Number → Status Check
+
+My Applications (User Dashboard)
+├─ Slug: /my-applications/
+├─ Shortcode: [ck_oneform_dashboard]
+├─ Template: templates/frontend/dashboard.php (or student-dashboard-modern.php)
+├─ Purpose: View all submitted applications with status
+├─ Features: Download PDF, view status, make payments, application stats
+├─ Login Required: YES
+└─ Route: → Track applications → Make payment
+
+Application Status (Public Checker)
+├─ Slug: /application-status/
+├─ Shortcode: [ck_oneform_status]
+├─ Template: templates/frontend/application-status.php
+├─ Purpose: Check application status without login
+├─ Features: Search by application number, view current status
+├─ Login Required: NO
+└─ Route: → View status → Take next steps
+
+Payment Page
+├─ Slug: /payment/
+├─ Shortcode: [ck_oneform_payment]
+├─ Template: templates/frontend/payment.php
+├─ Purpose: Process application fee or test access payments
+├─ Gateways: Razorpay, PayU, Paytm
+├─ Login Required: YES
+└─ Route: → Select application → Pay fee → Get confirmation
+
+================================================================================
+ADDITIONAL FRONTEND FEATURES (Shortcodes - Can be added to custom pages)
+================================================================================
+
+Courses Listing
+├─ Shortcode: [ck_oneform_courses limit="10"]
+├─ Template: templates/frontend/courses-list.php
+├─ Purpose: Display available courses
+└─ Usage: Add to any page for course listings
+
+Colleges Listing
+├─ Shortcode: [ck_oneform_colleges limit="10"]
+├─ Template: templates/frontend/colleges-list-advanced.php
+├─ Purpose: Display college information with search/filter
+└─ Usage: Add to any page for college directory
+
+Student Login
+├─ Shortcode: [ck_student_login]
+├─ Template: templates/frontend/student-login.php
+├─ Purpose: Standalone login form for students
+└─ Usage: Add to any page for login
+
+Student Dashboard (Modern)
+├─ Shortcode: [ck_student_dashboard]
+├─ Template: templates/frontend/student-dashboard-modern.php
+├─ Purpose: Modern dashboard with sidebar navigation
+├─ Features: Customizable via Dashboard Settings
+└─ Usage: Alternative dashboard layout
+
+Mega Menu (Service Navigation)
+├─ Shortcode: [ck_mega_menu]
+├─ Template: templates/frontend/mega-menu.php
+├─ Purpose: Display 42 service pages organized by category
+└─ Usage: Add to navbar or as standalone menu
+
+Service Pages
+├─ Shortcode: [ck_service_page slug="admission-guidance"]
+├─ Template: templates/frontend/service-page.php
+├─ Purpose: Display individual service pages from data
+└─ Data: /data/service-pages-content.php (42 pages)
+
+Lead Capture Form
+├─ Shortcode: [ck_lead_capture_form]
+├─ Template: templates/frontend/lead-capture-form.php
+├─ Purpose: Capture student leads with contact info
+└─ Data Stored: wp_ck_oneform_leads table
+
+Take Mock Test
+├─ Shortcode: [ck_take_test]
+├─ Template: templates/frontend/test-taking.php
+├─ Purpose: Interface for taking assigned mock tests
+├─ Features: Timer, scoring, question navigation
+└─ Login Required: YES
+
+================================================================================
+ADMIN PAGES (Backend Management)
+================================================================================
+
+MENU 1: OneForm (Original) - Basic
+├─ Dashboard
+│  └─ Overview of applications, recent submissions
+├─ Applications
+│  └─ View, filter, manage all applications
+├─ Payments
+│  └─ View all payment transactions and status
+└─ Settings
+   └─ Email, payment gateway, currency settings
+
+MENU 2: Student Portal (New - Latest) - Advanced
+├─ Students
+│  └─ List all registered students with filters
+├─ Services
+│  └─ Manage available services for students
+├─ Mock Tests
+│  └─ View mock test management (uses Test Generator)
+├─ Offers
+│  └─ Create and manage college offers for students
+├─ Lead Management
+│  └─ Track and manage student leads from capture forms
+├─ Dashboard Settings
+│  └─ Customize student dashboard appearance and features
+├─ Test Generator
+│  └─ Create tests, manage questions, assign to students
+└─ Payment Settings
+   └─ Configure Razorpay, PayU, Paytm
+
+================================================================================
+42 SERVICE PAGES (Data-Driven from /data/service-pages-content.php)
+================================================================================
+
+Category 1: Admissions (3 pages)
+├─ Admission Guidance
+├─ Document Verification
+└─ Admission Updates
+
+Category 2: Exam Prep (6 pages)
+├─ Coaching Classes
+├─ Mock Tests
+├─ Study Materials
+├─ Doubt Clearing
+├─ Success Stories
+└─ Exam Tips
+
+Category 3: Career Services (6 pages)
+├─ Career Counseling
+├─ Career Planning
+├─ Resume Building
+├─ Interview Prep
+├─ Job Placement
+└─ Alumni Network
+
+Category 4: Scholarships (5 pages)
+├─ Merit Scholarships
+├─ Need-based Scholarships
+├─ Specific Category Scholarships
+├─ Loan Assistance
+└─ Scholarship Comparison
+
+Category 5: Loans & Finance (4 pages)
+├─ Education Loans
+├─ Payment Plans
+├─ Financial Aid
+└─ Fee Waiver Info
+
+Category 6: Courses & Programs (10 pages)
+├─ Engineering Programs
+├─ Medical Programs
+├─ Law Programs
+├─ Commerce Programs
+├─ Arts Programs
+├─ Hotel Management
+├─ Design Programs
+├─ Management Programs
+├─ Computer Science
+└─ Emerging Fields
+
+Category 7: College Guide (8 pages)
+├─ College Rankings
+├─ College Comparison
+├─ College Reviews
+├─ Campus Life
+├─ Placement Records
+├─ Faculty Info
+├─ Admission Stats
+└─ College News
+
+================================================================================
+SUGGESTED WORDPRESS MENU STRUCTURE
+================================================================================
+
+For optimal user experience, create your main WordPress menu like this:
+
+Home
+├─ Home (Link to homepage)
+├─ Admissions
+│  ├─ How to Apply
+│  ├─ Application Form
+│  └─ Admission Status
+├─ Academics
+│  ├─ Courses
+│  ├─ Colleges
+│  └─ Services (Link to Mega Menu)
+├─ Resources
+│  ├─ Student Dashboard (Requires Login)
+│  ├─ Mock Tests (Requires Login)
+│  └─ Documents (Requires Login)
+├─ About
+└─ Contact
+
+================================================================================
+DATA FLOW DIAGRAM
+================================================================================
+
+New Student Flow:
+1. Visit /oneform-home/ → View features and courses
+2. Click "Apply Now" → /student-registration/ → Create account
+3. Auto-login → Redirected to /application-form/
+4. Fill form → Select colleges → Upload documents
+5. Submit → Get application number + confirmation email
+6. Check /my-applications/ → View status, download PDF
+7. Make payment → /payment/ → Process fee
+8. Receive final confirmation email
+
+Admin Workflow:
+1. Login to WordPress
+2. Student Portal → Students (view registrations)
+3. Student Portal → Services (manage offerings)
+4. Student Portal → Lead Management (track inquiries)
+5. Student Portal → Mock Tests (assign tests)
+6. Student Portal → Test Generator (create tests)
+7. OneForm → Applications (manage submissions)
+8. OneForm → Payments (track transactions)
+
+Service Pages (Data-Driven):
+1. [ck_mega_menu] displays categories
+2. User clicks category → Service pages load
+3. Each page pulls content from /data/service-pages-content.php
+4. CTA buttons link to dashboard or contact
+
+================================================================================
+KEY FEATURES BY PAGE
+================================================================================
+
+Home Page (home-modern.php)
+- Feature showcase (responsive cards)
+- Statistics counters
+- Course preview slider
+- Call-to-action buttons
+- Modern gradient design
+- Mobile responsive
+
+Registration Page (registration-form.php)
+- Full name, email, phone
+- Password creation
+- Terms acceptance
+- Email verification
+- Auto-login after registration
+- Error handling
+
+Application Form (application-form.php)
+- Personal information section
+- Academic details section
+- Document upload section
+- Course selection dropdown
+- Multi-college selection checkbox
+- Form validation (client + server)
+- AJAX submission with progress bar
+
+Dashboard (dashboard.php / student-dashboard-modern.php)
+- Application statistics cards
+- Applications table with status
+- Status badges (Pending, Approved, Rejected)
+- Quick action buttons
+- Download PDF link
+- Make payment link
+- Sidebar navigation (modern template)
+
+Status Checker (application-status.php)
+- Search by application number
+- Public access (no login)
+- Real-time status display
+- Last updated timestamp
+- Application details table
+
+Payment Page (payment.php)
+- Select application for payment
+- Display payment amount
+- Select payment gateway
+- Payment history table
+- Transaction details
+- Receipt download
+
+================================================================================
+CUSTOMIZATION POINTS
+================================================================================
+
+Colors & Branding:
+└─ /assets/css/home-modern.css (Main colors, gradients)
+└─ /assets/css/frontend.css (Component styles)
+└─ Admin → Dashboard Settings → Theme Color
+
+Email Templates:
+└─ /templates/emails/welcome.php
+└─ /templates/emails/application-confirmation.php
+└─ /templates/emails/admin-notification.php
+
+Form Fields:
+└─ Filter: ck_oneform_form_fields in /includes/class-shortcodes.php
+└─ Or edit /public/class-frontend.php
+
+Service Pages Content:
+└─ /data/service-pages-content.php (Edit titles, descriptions, features)
+
+Dashboard Features:
+└─ Admin → Dashboard Settings (Toggle features, select template)
+
+Admin Menu:
+└─ Edit /admin/class-admin.php (for OneForm menu)
+└─ Edit /admin/class-student-manager.php (for Student Portal menu)
+
+================================================================================
