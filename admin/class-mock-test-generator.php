@@ -103,11 +103,21 @@ class CK_OneForm_Mock_Test_Generator {
             due_date datetime DEFAULT NULL,
             max_attempts int(11) DEFAULT 1,
             attempts_used int(11) DEFAULT 0,
+            payment_status varchar(20) DEFAULT 'pending',
+            payment_amount decimal(10,2) DEFAULT 0,
+            payment_id varchar(100) DEFAULT NULL,
+            paid_at datetime DEFAULT NULL,
             PRIMARY KEY (id),
             UNIQUE KEY test_student (test_id, student_id),
             KEY test_id (test_id),
             KEY student_id (student_id)
         ) $charset_collate;");
+
+        // Add payment columns if they don't exist
+        $wpdb->query("ALTER TABLE $assignments_table ADD COLUMN IF NOT EXISTS payment_status varchar(20) DEFAULT 'pending'");
+        $wpdb->query("ALTER TABLE $assignments_table ADD COLUMN IF NOT EXISTS payment_amount decimal(10,2) DEFAULT 0");
+        $wpdb->query("ALTER TABLE $assignments_table ADD COLUMN IF NOT EXISTS payment_id varchar(100) DEFAULT NULL");
+        $wpdb->query("ALTER TABLE $assignments_table ADD COLUMN IF NOT EXISTS paid_at datetime DEFAULT NULL");
     }
 
     /**
@@ -511,6 +521,11 @@ class CK_OneForm_Mock_Test_Generator {
                     <span><span class="dashicons dashicons-clock"></span> <?php echo intval($test->duration); ?> mins</span>
                     <span><span class="dashicons dashicons-editor-help"></span> <?php echo intval($question_count); ?>/<?php echo intval($test->total_questions); ?> Questions</span>
                     <span><span class="dashicons dashicons-awards"></span> <?php echo intval($test->total_marks); ?> Marks</span>
+                    <?php if (isset($test->is_paid) && $test->is_paid): ?>
+                    <span style="color: #f59e0b; font-weight: 700;"><span class="dashicons dashicons-money-alt"></span> ₹<?php echo number_format($test->price, 2); ?></span>
+                    <?php else: ?>
+                    <span style="color: #10b981; font-weight: 700;"><span class="dashicons dashicons-tag"></span> FREE</span>
+                    <?php endif; ?>
                 </div>
 
                 <div class="test-actions">
@@ -642,6 +657,53 @@ class CK_OneForm_Mock_Test_Generator {
                         </label>
                     </div>
                 </div>
+
+                <!-- Payment Settings -->
+                <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                    <h3 style="margin: 0 0 15px; color: #92400e;"><span class="dashicons dashicons-money-alt"></span> Payment Settings</h3>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="is_paid" id="is_paid_checkbox" value="1" <?php echo ($test && $test->is_paid) ? 'checked' : ''; ?>>
+                                <strong>This is a Paid Test</strong>
+                            </label>
+                        </div>
+
+                        <div class="form-group" id="price_field" style="<?php echo ($test && $test->is_paid) ? '' : 'opacity: 0.5;'; ?>">
+                            <label>Test Price (₹)</label>
+                            <input type="number" name="price" value="<?php echo $test ? floatval($test->price) : 0; ?>" min="0" step="0.01" <?php echo ($test && $test->is_paid) ? '' : 'disabled'; ?>>
+                        </div>
+
+                        <div class="form-group full-width" id="gateway_field" style="<?php echo ($test && $test->is_paid) ? '' : 'opacity: 0.5;'; ?>">
+                            <label>Payment Gateway</label>
+                            <select name="payment_gateway" <?php echo ($test && $test->is_paid) ? '' : 'disabled'; ?>>
+                                <option value="manual" <?php echo ($test && $test->payment_gateway === 'manual') ? 'selected' : ''; ?>>Manual Verification</option>
+                                <option value="razorpay" <?php echo ($test && $test->payment_gateway === 'razorpay') ? 'selected' : ''; ?>>Razorpay</option>
+                                <option value="instamojo" <?php echo ($test && $test->payment_gateway === 'instamojo') ? 'selected' : ''; ?>>Instamojo</option>
+                                <option value="upi" <?php echo ($test && $test->payment_gateway === 'upi') ? 'selected' : ''; ?>>UPI Direct</option>
+                            </select>
+                            <p class="description" style="margin-top: 10px; font-size: 12px; color: #666;">
+                                <strong>Manual:</strong> Admin manually verifies payment and approves access<br>
+                                <strong>Razorpay:</strong> Automatic payment processing (requires API keys in settings)<br>
+                                <strong>Instamojo:</strong> Automatic payment via Instamojo (requires API keys in settings)<br>
+                                <strong>UPI Direct:</strong> Students pay to your UPI ID and upload screenshot
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                jQuery('#is_paid_checkbox').on('change', function() {
+                    if (this.checked) {
+                        jQuery('#price_field, #gateway_field').css('opacity', '1');
+                        jQuery('#price_field input, #gateway_field select').prop('disabled', false);
+                    } else {
+                        jQuery('#price_field, #gateway_field').css('opacity', '0.5');
+                        jQuery('#price_field input, #gateway_field select').prop('disabled', true);
+                    }
+                });
+                </script>
 
                 <p class="submit">
                     <button type="submit" class="button button-primary button-large">
@@ -803,6 +865,22 @@ class CK_OneForm_Mock_Test_Generator {
                 <input type="hidden" name="test_id" value="<?php echo intval($test_id); ?>">
                 <?php wp_nonce_field('ck_assign_test_nonce', 'assign_nonce'); ?>
 
+                <?php if (isset($test->is_paid) && $test->is_paid): ?>
+                <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #92400e;">
+                        <strong><span class="dashicons dashicons-money-alt"></span> This is a PAID test</strong><br>
+                        Price: <strong>₹<?php echo number_format($test->price, 2); ?></strong><br>
+                        Payment Gateway: <strong><?php echo ucfirst($test->payment_gateway); ?></strong>
+                    </p>
+                </div>
+                <?php else: ?>
+                <div style="background: #d1fae5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #065f46;">
+                        <strong><span class="dashicons dashicons-tag"></span> This is a FREE test</strong>
+                    </p>
+                </div>
+                <?php endif; ?>
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Max Attempts per Student</label>
@@ -813,6 +891,19 @@ class CK_OneForm_Mock_Test_Generator {
                         <input type="date" name="due_date" min="<?php echo date('Y-m-d'); ?>">
                     </div>
                 </div>
+
+                <?php if (isset($test->is_paid) && $test->is_paid): ?>
+                <div style="background: #fff; padding: 15px; border: 2px solid #f59e0b; border-radius: 8px; margin-top: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" name="payment_verified" value="1" checked>
+                        <strong>Mark payment as verified for selected students</strong>
+                    </label>
+                    <p style="margin: 10px 0 0; font-size: 13px; color: #666;">
+                        When checked, selected students will have immediate access to the test.<br>
+                        Uncheck this if students need to pay first before accessing the test.
+                    </p>
+                </div>
+                <?php endif; ?>
 
                 <div class="form-group" style="margin-top: 20px;">
                     <label>
@@ -1005,6 +1096,9 @@ class CK_OneForm_Mock_Test_Generator {
         global $wpdb;
         $table = $wpdb->prefix . 'ck_oneform_mock_tests';
 
+        // Ensure table exists
+        self::ensure_tests_table_exists();
+
         $test_id = intval($_POST['test_id']);
 
         $data = array(
@@ -1020,6 +1114,9 @@ class CK_OneForm_Mock_Test_Generator {
             'show_result_immediately' => isset($_POST['show_result_immediately']) ? 1 : 0,
             'instructions' => sanitize_textarea_field($_POST['instructions'] ?? ''),
             'status' => sanitize_text_field($_POST['status'] ?? 'draft'),
+            'is_paid' => isset($_POST['is_paid']) ? 1 : 0,
+            'price' => floatval($_POST['price'] ?? 0),
+            'payment_gateway' => sanitize_text_field($_POST['payment_gateway'] ?? 'manual'),
         );
 
         if ($test_id) {
@@ -1029,8 +1126,49 @@ class CK_OneForm_Mock_Test_Generator {
             $test_id = $wpdb->insert_id;
         }
 
+        // Log for debugging
+        if ($wpdb->last_error) {
+            error_log('Mock Test Save Error: ' . $wpdb->last_error);
+        }
+
         wp_redirect(admin_url('admin.php?page=ck-test-generator&saved=1'));
         exit;
+    }
+
+    /**
+     * Ensure tests table exists with payment columns
+     */
+    private static function ensure_tests_table_exists() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'ck_oneform_mock_tests';
+        $charset_collate = $wpdb->get_charset_collate();
+
+        // Create table if not exists
+        $wpdb->query("CREATE TABLE IF NOT EXISTS $table (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            title varchar(255) NOT NULL,
+            description text,
+            exam_type varchar(50) DEFAULT 'other',
+            duration int(11) DEFAULT 60,
+            total_questions int(11) DEFAULT 0,
+            total_marks int(11) DEFAULT 0,
+            passing_marks int(11) DEFAULT 0,
+            negative_marking tinyint(1) DEFAULT 0,
+            shuffle_questions tinyint(1) DEFAULT 0,
+            show_result_immediately tinyint(1) DEFAULT 1,
+            instructions text,
+            status varchar(20) DEFAULT 'draft',
+            is_paid tinyint(1) DEFAULT 0,
+            price decimal(10,2) DEFAULT 0,
+            payment_gateway varchar(50) DEFAULT 'manual',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id)
+        ) $charset_collate;");
+
+        // Add payment columns if they don't exist (for existing tables)
+        $wpdb->query("ALTER TABLE $table ADD COLUMN IF NOT EXISTS is_paid tinyint(1) DEFAULT 0");
+        $wpdb->query("ALTER TABLE $table ADD COLUMN IF NOT EXISTS price decimal(10,2) DEFAULT 0");
+        $wpdb->query("ALTER TABLE $table ADD COLUMN IF NOT EXISTS payment_gateway varchar(50) DEFAULT 'manual'");
     }
 
     /**
@@ -1045,6 +1183,9 @@ class CK_OneForm_Mock_Test_Generator {
 
         global $wpdb;
         $table = $wpdb->prefix . 'ck_oneform_questions';
+
+        // Ensure table exists
+        self::create_tables();
 
         $test_id = intval($_POST['test_id']);
         $questions = $_POST['questions'] ?? array();
@@ -1097,10 +1238,19 @@ class CK_OneForm_Mock_Test_Generator {
         global $wpdb;
         $table = $wpdb->prefix . 'ck_oneform_test_assignments';
 
+        // Ensure table exists
+        self::create_tables();
+
         $test_id = intval($_POST['test_id']);
         $students = $_POST['students'] ?? array();
         $max_attempts = intval($_POST['max_attempts'] ?? 1);
         $due_date = !empty($_POST['due_date']) ? sanitize_text_field($_POST['due_date']) : null;
+        $payment_status = isset($_POST['payment_verified']) ? 'verified' : 'pending';
+
+        if (empty($students)) {
+            wp_redirect(admin_url('admin.php?page=ck-test-generator&assign_error=1'));
+            exit;
+        }
 
         foreach ($students as $student_id) {
             $data = array(
@@ -1108,6 +1258,7 @@ class CK_OneForm_Mock_Test_Generator {
                 'student_id' => intval($student_id),
                 'max_attempts' => $max_attempts,
                 'due_date' => $due_date,
+                'payment_status' => $payment_status,
             );
 
             // Check if already assigned
@@ -1121,6 +1272,11 @@ class CK_OneForm_Mock_Test_Generator {
                 $wpdb->update($table, $data, array('id' => $existing));
             } else {
                 $wpdb->insert($table, $data);
+            }
+
+            // Log any errors
+            if ($wpdb->last_error) {
+                error_log('Assignment Error: ' . $wpdb->last_error);
             }
         }
 
