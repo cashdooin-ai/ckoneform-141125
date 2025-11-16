@@ -254,12 +254,18 @@ jQuery(document).ready(function($) {
                         $form[0].reset();
                     }, 2000);
                 } else {
-                    showMessage('error', response.data.message);
+                    showMessage('error', response.data.message || 'Registration failed');
                 }
                 $button.prop('disabled', false).html(originalText);
             },
-            error: function() {
-                showMessage('error', 'An error occurred. Please try again.');
+            error: function(xhr, status, error) {
+                console.log('AJAX Error:', xhr.responseText);
+                let errorMsg = 'An error occurred. Please try again.';
+                if (xhr.responseText) {
+                    // Try to show actual error from server
+                    errorMsg = 'Server Error: ' + xhr.responseText.substring(0, 200);
+                }
+                showMessage('error', errorMsg);
                 $button.prop('disabled', false).html(originalText);
             }
         });

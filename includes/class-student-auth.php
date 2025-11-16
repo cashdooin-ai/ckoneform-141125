@@ -288,7 +288,11 @@ class CK_OneForm_Student_Auth {
      */
     public static function ajax_register() {
         try {
-            check_ajax_referer('ck-student-auth', 'nonce');
+            // Verify nonce with die=false to handle gracefully
+            if (!wp_verify_nonce($_POST['nonce'] ?? '', 'ck-student-auth')) {
+                wp_send_json_error(array('message' => 'Security check failed. Please refresh the page and try again.'));
+                return;
+            }
 
             $data = array(
                 'full_name' => sanitize_text_field($_POST['full_name'] ?? ''),
@@ -300,7 +304,13 @@ class CK_OneForm_Student_Auth {
                 'category' => sanitize_text_field($_POST['category'] ?? ''),
             );
 
+            // Log for debugging
+            error_log('OneForm Registration Attempt: ' . print_r($data, true));
+
             $result = self::register_student($data);
+
+            // Log result
+            error_log('OneForm Registration Result: ' . print_r($result, true));
 
             if ($result['success']) {
                 wp_send_json_success($result);
@@ -308,6 +318,7 @@ class CK_OneForm_Student_Auth {
                 wp_send_json_error($result);
             }
         } catch (Exception $e) {
+            error_log('OneForm Registration Exception: ' . $e->getMessage());
             wp_send_json_error(array('message' => 'Error: ' . $e->getMessage()));
         }
     }
