@@ -30,6 +30,9 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_service_page', array(__CLASS__, 'service_page'));
         add_shortcode('ck_lead_capture_form', array(__CLASS__, 'lead_capture_form'));
         add_shortcode('ck_take_test', array(__CLASS__, 'take_test'));
+        add_shortcode('ck_contact_page', array(__CLASS__, 'contact_page'));
+        add_shortcode('ck_about_page', array(__CLASS__, 'about_page'));
+        add_shortcode('ck_faq_page', array(__CLASS__, 'faq_page'));
     }
 
     /**
@@ -238,6 +241,33 @@ class CK_OneForm_Shortcodes {
     public static function take_test($atts) {
         ob_start();
         include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/test-taking.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * Contact page shortcode
+     */
+    public static function contact_page($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/contact-page.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * About page shortcode
+     */
+    public static function about_page($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/about-page.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * FAQ page shortcode
+     */
+    public static function faq_page($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/faq-page.php';
         return ob_get_clean();
     }
 }

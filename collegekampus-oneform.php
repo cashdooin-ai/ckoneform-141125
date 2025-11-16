@@ -79,6 +79,7 @@ class CK_OneForm {
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-emails.php';
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-pdf-generator.php';
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-student-auth.php';
+        require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-navigation.php';
 
         // Admin includes
         if (is_admin()) {
@@ -238,6 +239,43 @@ class CK_OneForm {
                 'title' => 'Payment',
                 'content' => '[ck_oneform_payment]'
             ),
+            // Additional pages for navigation
+            'courses' => array(
+                'title' => 'Our Courses',
+                'content' => '[ck_oneform_courses limit="50"]'
+            ),
+            'colleges' => array(
+                'title' => 'Partner Colleges',
+                'content' => '[ck_oneform_colleges limit="100"]'
+            ),
+            'student-login' => array(
+                'title' => 'Student Login',
+                'content' => '[ck_student_login]'
+            ),
+            'mock-tests' => array(
+                'title' => 'Mock Tests',
+                'content' => '[ck_take_test]'
+            ),
+            'student-dashboard' => array(
+                'title' => 'Student Dashboard',
+                'content' => '[ck_student_dashboard]'
+            ),
+            'services' => array(
+                'title' => 'Our Services',
+                'content' => '[ck_mega_menu]'
+            ),
+            'contact-us' => array(
+                'title' => 'Contact Us',
+                'content' => '[ck_contact_page]'
+            ),
+            'about-us' => array(
+                'title' => 'About Us',
+                'content' => '[ck_about_page]'
+            ),
+            'faq' => array(
+                'title' => 'Frequently Asked Questions',
+                'content' => '[ck_faq_page]'
+            ),
         );
 
         foreach ($pages as $slug => $page) {
@@ -258,6 +296,7 @@ class CK_OneForm {
         }
     }
 }
+
 
 /**
  * Initialize the plugin

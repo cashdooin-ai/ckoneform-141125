@@ -107,7 +107,9 @@ Navigate to **OneForm → Settings** and configure:
 
 ## Page Structure
 
-The plugin automatically creates these pages:
+The plugin automatically creates these pages on activation:
+
+### Core Application Pages
 
 1. **OneForm Home** (`/oneform-home/`)
    - Landing page with features and statistics
@@ -133,6 +135,48 @@ The plugin automatically creates these pages:
    - Payment processing page
    - Shortcode: `[ck_oneform_payment]`
 
+### Academic & Service Pages
+
+7. **Our Courses** (`/courses/`)
+   - List of all available courses
+   - Shortcode: `[ck_oneform_courses limit="50"]`
+
+8. **Partner Colleges** (`/colleges/`)
+   - Directory of partner colleges with filters
+   - Shortcode: `[ck_oneform_colleges limit="100"]`
+
+9. **Our Services** (`/services/`)
+   - Mega menu of 42+ service pages
+   - Shortcode: `[ck_mega_menu]`
+
+10. **Mock Tests** (`/mock-tests/`)
+    - Test-taking interface for competitive exams
+    - Shortcode: `[ck_take_test]`
+
+### User Account Pages
+
+11. **Student Login** (`/student-login/`)
+    - Login/registration portal
+    - Shortcode: `[ck_student_login]`
+
+12. **Student Dashboard** (`/student-dashboard/`)
+    - Modern dashboard with sidebar navigation
+    - Shortcode: `[ck_student_dashboard]`
+
+### Information Pages
+
+13. **About Us** (`/about-us/`)
+    - Company information and team
+    - Shortcode: `[ck_about_page]`
+
+14. **Contact Us** (`/contact-us/`)
+    - Contact form and information
+    - Shortcode: `[ck_contact_page]`
+
+15. **FAQ** (`/faq/`)
+    - Frequently asked questions
+    - Shortcode: `[ck_faq_page]`
+
 ## Available Shortcodes
 
 | Shortcode | Description | Usage |
@@ -145,25 +189,79 @@ The plugin automatically creates these pages:
 | `[ck_oneform_payment]` | Payment page | `[ck_oneform_payment]` |
 | `[ck_oneform_courses]` | Courses list | `[ck_oneform_courses limit="10" category="engineering"]` |
 | `[ck_oneform_colleges]` | Colleges list | `[ck_oneform_colleges limit="10" type="government"]` |
+| `[ck_student_login]` | Student login form | `[ck_student_login]` |
+| `[ck_student_dashboard]` | Modern dashboard | `[ck_student_dashboard]` |
+| `[ck_mega_menu]` | Service mega menu | `[ck_mega_menu]` |
+| `[ck_service_page]` | Individual service | `[ck_service_page slug="mock-tests"]` |
+| `[ck_lead_capture_form]` | Lead capture form | `[ck_lead_capture_form variant="full"]` |
+| `[ck_take_test]` | Mock test interface | `[ck_take_test]` |
+| `[ck_contact_page]` | Contact page | `[ck_contact_page]` |
+| `[ck_about_page]` | About us page | `[ck_about_page]` |
+| `[ck_faq_page]` | FAQ page | `[ck_faq_page]` |
 
 ## Navigation Menu
 
-To add OneForm pages to your site menu:
+### Automatic Menu Setup
+
+The plugin registers custom navigation menu locations. Go to **Student Portal → Navigation Setup** to:
+
+1. Auto-create pre-configured navigation menus
+2. View all available OneForm pages
+3. Configure breadcrumb settings
+
+### Registered Menu Locations
+
+- `ck-oneform-main` - Main header navigation
+- `ck-oneform-footer` - Footer navigation
+- `ck-oneform-quick-links` - Quick links sidebar
+- `ck-oneform-student-portal` - Student portal menu
+
+### Manual Menu Setup
 
 1. Go to **Appearance → Menus**
 2. Select or create a menu
 3. Add the OneForm pages from the "Pages" section
-4. Arrange them as needed
+4. Assign to one of the registered menu locations
 5. Save the menu
 
-Suggested menu structure:
+### Suggested Menu Structure
+
 ```
-- Home
-- Courses
-- Colleges
-- Apply Now (Application Form)
-- My Dashboard (My Applications)
-- Contact
+Main Navigation:
+├─ Home (OneForm Home)
+├─ Academics
+│  ├─ Courses
+│  ├─ Colleges
+│  └─ Services
+├─ Apply Now (Application Form)
+├─ Mock Tests
+├─ Resources
+│  ├─ About Us
+│  ├─ FAQ
+│  ├─ Contact Us
+│  └─ Track Application
+└─ Login/Register
+
+Footer Navigation:
+├─ About Us
+├─ Contact Us
+├─ FAQ
+└─ Track Application
+```
+
+### Using Navigation in Templates
+
+Include the header navigation in your templates:
+
+```php
+// Include the header navigation
+include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/header-navigation.php';
+
+// Or display a specific menu
+CK_OneForm_Navigation::display_menu('ck-oneform-main');
+
+// Display breadcrumbs
+echo CK_OneForm_Navigation::get_breadcrumbs();
 ```
 
 ## User Workflow
