@@ -40,7 +40,7 @@ class CK_OneForm_Lead_Manager {
      */
     public static function add_menu() {
         add_submenu_page(
-            'ck-oneform-main',
+            'ck-student-portal',
             'Lead Management',
             'Lead Management',
             'manage_options',

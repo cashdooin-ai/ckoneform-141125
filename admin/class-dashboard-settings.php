@@ -25,7 +25,7 @@ class CK_OneForm_Dashboard_Settings {
      */
     public static function add_settings_menu() {
         add_submenu_page(
-            'ck-oneform-main',
+            'ck-student-portal',
             'Dashboard Settings',
             'Dashboard Settings',
             'manage_options',
