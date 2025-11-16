@@ -28,6 +28,7 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_student_dashboard', array(__CLASS__, 'student_dashboard'));
         add_shortcode('ck_mega_menu', array(__CLASS__, 'mega_menu'));
         add_shortcode('ck_service_page', array(__CLASS__, 'service_page'));
+        add_shortcode('ck_lead_capture_form', array(__CLASS__, 'lead_capture_form'));
     }
 
     /**
@@ -175,8 +176,33 @@ class CK_OneForm_Shortcodes {
             return '<p>Please <a href="' . home_url('/student-login/') . '">login</a> to access your dashboard.</p>';
         }
 
+        // Get dashboard settings to determine which template to use
+        $settings = get_option('ck_dashboard_settings', array('dashboard_template' => 'modern'));
+        $template = ($settings['dashboard_template'] ?? 'modern') === 'modern'
+            ? 'templates/frontend/student-dashboard-modern.php'
+            : 'templates/frontend/student-dashboard-full.php';
+
         ob_start();
-        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/student-dashboard-full.php';
+        include CK_ONEFORM_PLUGIN_DIR . $template;
+        return ob_get_clean();
+    }
+
+    /**
+     * Lead capture form shortcode
+     * Usage: [ck_lead_capture_form variant="full" source="Homepage" title="Get Free Counseling"]
+     * Variants: full, compact, inline, floating
+     */
+    public static function lead_capture_form($atts) {
+        $atts = shortcode_atts(array(
+            'variant' => 'full',
+            'source' => 'Website',
+            'title' => 'Get Free Counseling',
+            'subtitle' => 'Our experts will guide you to your dream college',
+            'button_text' => 'Get Free Consultation',
+        ), $atts);
+
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/lead-capture-form.php';
         return ob_get_clean();
     }
 
