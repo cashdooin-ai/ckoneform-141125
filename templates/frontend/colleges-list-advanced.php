@@ -678,7 +678,7 @@ jQuery(document).ready(function($) {
 
 .filters-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
 }
@@ -698,6 +698,19 @@ jQuery(document).ready(function($) {
     border-radius: 8px;
     font-size: 14px;
     transition: all 0.3s;
+    background: white;
+    /* Ensure text displays fully */
+    overflow: visible;
+    text-overflow: ellipsis;
+    white-space: normal;
+}
+
+/* Fix dropdown option display */
+.filter-select option {
+    padding: 8px;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .filter-input:focus,

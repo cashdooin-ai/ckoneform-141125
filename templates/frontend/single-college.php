@@ -567,6 +567,8 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
 .ck-college-detail {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     color: #333;
+    position: relative;
+    overflow: visible; /* Ensure sticky works */
 }
 
 /* Breadcrumb */
@@ -727,25 +729,39 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
 
 /* Navigation Tabs - Sticky on Scroll */
 .college-tabs {
-    max-width: 1200px;
-    margin: 0 auto 30px;
+    max-width: 100%;
+    margin: 0 0 30px 0;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 0;
     padding: 15px 20px;
-    /* Sticky positioning */
+    justify-content: center;
+    /* Sticky positioning - IMPORTANT */
+    position: -webkit-sticky; /* Safari */
     position: sticky;
     top: 0;
     z-index: 1000;
     transition: box-shadow 0.3s, background 0.3s;
+    /* Ensure it works in all contexts */
+    width: 100%;
+    left: 0;
+    right: 0;
 }
 
 .college-tabs.is-sticky {
     background: rgba(255, 255, 255, 0.98);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    border-radius: 0 0 10px 10px;
+    border-radius: 0;
+}
+
+/* Add backdrop blur for better visibility when sticky */
+@supports (backdrop-filter: blur(10px)) {
+    .college-tabs.is-sticky {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+    }
 }
 
 .college-tabs .tab {
