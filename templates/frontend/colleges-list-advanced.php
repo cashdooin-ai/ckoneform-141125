@@ -286,19 +286,37 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
                 $ownership = get_post_meta($college_id, '_ck_ownership', true) ?: get_post_meta($college_id, 'ownership', true);
                 $avg_placement = get_post_meta($college_id, '_ck_avg_placement', true);
                 $detail_url = add_query_arg('college_id', $college_id, home_url('/college-details/'));
+
+                // Get college image
+                $college_image = '';
+                if (has_post_thumbnail($college_id)) {
+                    $college_image = get_the_post_thumbnail_url($college_id, 'medium');
+                } else {
+                    // Use placeholder based on college type
+                    $college_image = 'https://via.placeholder.com/400x250/667eea/ffffff?text=' . urlencode($short_name ?: 'College');
+                }
+
                 $college_counter++;
             ?>
             <!-- College Item (works for both card and list view) -->
             <div class="college-item" data-college-id="<?php echo $college_id; ?>" data-index="<?php echo $college_counter; ?>">
+
+                <!-- College Image -->
+                <div class="item-image">
+                    <img src="<?php echo esc_url($college_image); ?>"
+                         alt="<?php echo esc_attr(get_the_title()); ?>"
+                         loading="lazy">
+                    <?php if ($nirf_rank): ?>
+                        <div class="image-rank-badge">
+                            #<?php echo $nirf_rank; ?> NIRF
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <div class="item-header">
                     <div class="college-badge <?php echo strtolower(preg_replace('/[^a-z0-9]/', '', strtolower($type))); ?>">
                         <?php echo esc_html($type); ?>
                     </div>
-                    <?php if ($nirf_rank): ?>
-                        <div class="rank-badge">
-                            #<?php echo $nirf_rank; ?> NIRF
-                        </div>
-                    <?php endif; ?>
                     <div class="selection-checkbox" style="display: none;">
                         <input type="checkbox"
                                class="college-select-checkbox"
@@ -919,6 +937,52 @@ jQuery(document).ready(function($) {
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
+/* College Image Styles */
+.item-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: #f0f4ff;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.college-item:hover .item-image img {
+    transform: scale(1.05);
+}
+
+.image-rank-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(102, 126, 234, 0.95);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Card View - Image on top */
+.card-view .item-image {
+    height: 200px;
+}
+
+/* List View - Image on left side */
+.list-view .item-image {
+    width: 250px;
+    height: 100%;
+    flex-shrink: 0;
+}
+
 /* List view specific styles */
 .list-view .college-item {
     display: flex;
@@ -1357,8 +1421,9 @@ jQuery(document).ready(function($) {
     cursor: pointer;
 }
 
+/* Mobile Responsive */
 @media (max-width: 768px) {
-    .colleges-grid {
+    .colleges-container.card-view {
         grid-template-columns: 1fr;
     }
 
@@ -1368,6 +1433,60 @@ jQuery(document).ready(function($) {
 
     .colleges-header h1 {
         font-size: 1.8rem;
+    }
+
+    /* Image adjustments for mobile */
+    .card-view .item-image {
+        height: 180px;
+    }
+
+    .list-view .item-image {
+        width: 120px;
+        height: 120px;
+    }
+
+    .list-view .college-item {
+        flex-wrap: nowrap;
+    }
+
+    .list-view .item-body {
+        flex-direction: column;
+    }
+
+    .list-view .item-details {
+        border-left: none;
+        border-top: 1px solid #e0e0e0;
+        padding-left: 0;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+
+    .image-rank-badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .item-footer {
+        flex-direction: column;
+        padding: 12px 15px;
+    }
+
+    .btn-view-details,
+    .btn-website,
+    .btn-select-college {
+        width: 100%;
+    }
+}
+
+/* Extra small mobile */
+@media (max-width: 480px) {
+    .list-view .item-image {
+        width: 100px;
+        height: 100px;
+    }
+
+    .card-view .item-image {
+        height: 160px;
     }
 }
 </style>
