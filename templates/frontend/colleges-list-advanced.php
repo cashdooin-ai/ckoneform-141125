@@ -16,13 +16,20 @@ $selected_city = isset($_GET['city']) ? sanitize_text_field($_GET['city']) : '';
 $selected_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '';
 $search_query = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
 $sort_by = isset($_GET['sort']) ? sanitize_text_field($_GET['sort']) : 'name'; // Sort by name by default
+$view_mode = isset($_GET['view']) ? sanitize_text_field($_GET['view']) : 'card'; // card or list view
 
 // Build query args
 $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 // Use shortcode limit as default, allow URL parameter to override
-$default_per_page = isset($shortcode_atts['limit']) ? intval($shortcode_atts['limit']) : 50;
-$per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : $default_per_page;
-if ($per_page > 500) $per_page = 500; // Cap at 500
+$default_per_page = isset($shortcode_atts['limit']) ? intval($shortcode_atts['limit']) : 30;
+$per_page = isset($_GET['per_page']) ? sanitize_text_field($_GET['per_page']) : $default_per_page;
+// Handle "all" option
+if ($per_page === 'all') {
+    $per_page = -1; // WordPress convention for all posts
+} else {
+    $per_page = intval($per_page);
+    if ($per_page > 500) $per_page = 500; // Cap at 500
+}
 $args = array(
     'post_type' => 'ck_college',
     'posts_per_page' => $per_page,
@@ -203,11 +210,12 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
                 <div class="filter-item">
                     <label>📄 Per Page</label>
                     <select name="per_page" class="filter-select">
-                        <option value="25" <?php selected($per_page, 25); ?>>25 Colleges</option>
-                        <option value="50" <?php selected($per_page, 50); ?>>50 Colleges</option>
-                        <option value="100" <?php selected($per_page, 100); ?>>100 Colleges</option>
-                        <option value="200" <?php selected($per_page, 200); ?>>200 Colleges</option>
-                        <option value="500" <?php selected($per_page, 500); ?>>500 Colleges</option>
+                        <option value="30" <?php selected($per_page, 30); ?>>30 Colleges</option>
+                        <option value="60" <?php selected($per_page, 60); ?>>60 Colleges</option>
+                        <option value="90" <?php selected($per_page, 90); ?>>90 Colleges</option>
+                        <option value="120" <?php selected($per_page, 120); ?>>120 Colleges</option>
+                        <option value="150" <?php selected($per_page, 150); ?>>150 Colleges</option>
+                        <option value="all" <?php selected($per_page, -1); ?>>All Colleges</option>
                     </select>
                 </div>
 
@@ -215,13 +223,25 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
 
             <div class="filter-actions">
                 <button type="submit" class="btn-filter">🔍 Apply Filters</button>
-                <a href="<?php echo esc_url(remove_query_arg(array('college_type', 'state', 'city', 'category', 's', 'sort', 'per_page'))); ?>"
+                <a href="<?php echo esc_url(remove_query_arg(array('college_type', 'state', 'city', 'category', 's', 'sort', 'per_page', 'view'))); ?>"
                    class="btn-reset">🔄 Reset All</a>
                 <button type="button" class="btn-select-mode" id="toggle-selection-mode">
                     ✅ Multi-Select Mode
                 </button>
+                <input type="hidden" name="view" id="view-mode-input" value="<?php echo esc_attr($view_mode); ?>">
             </div>
         </form>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <span class="view-label">View:</span>
+            <button type="button" class="view-btn <?php echo $view_mode === 'card' ? 'active' : ''; ?>" data-view="card">
+                <span class="view-icon">▦</span> Card
+            </button>
+            <button type="button" class="view-btn <?php echo $view_mode === 'list' ? 'active' : ''; ?>" data-view="list">
+                <span class="view-icon">≡</span> List
+            </button>
+        </div>
     </div>
 
     <!-- Selected Colleges Counter -->
@@ -236,15 +256,17 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
     <!-- Results Info -->
     <div class="results-info">
         <p>
-            Showing <strong><?php echo $colleges_query->post_count; ?></strong> of
-            <strong><?php echo $colleges_query->found_posts; ?></strong> colleges
+            Showing <strong id="shown-count"><?php echo $colleges_query->post_count; ?></strong> of
+            <strong id="total-count"><?php echo $colleges_query->found_posts; ?></strong> colleges
         </p>
     </div>
 
-    <!-- Colleges Grid -->
-    <div class="colleges-grid" id="colleges-grid">
+    <!-- Colleges Container (supports both card and list view) -->
+    <div class="colleges-container <?php echo $view_mode === 'list' ? 'list-view' : 'card-view'; ?>" id="colleges-container">
         <?php if ($colleges_query->have_posts()): ?>
-            <?php while ($colleges_query->have_posts()): $colleges_query->the_post();
+            <?php
+            $college_counter = 0;
+            while ($colleges_query->have_posts()): $colleges_query->the_post();
                 $college_id = get_the_ID();
                 // Try new meta keys first, fallback to old ones
                 $short_name = get_post_meta($college_id, '_ck_short_name', true) ?: get_post_meta($college_id, 'short_name', true);
@@ -264,9 +286,11 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
                 $ownership = get_post_meta($college_id, '_ck_ownership', true) ?: get_post_meta($college_id, 'ownership', true);
                 $avg_placement = get_post_meta($college_id, '_ck_avg_placement', true);
                 $detail_url = add_query_arg('college_id', $college_id, home_url('/college-details/'));
+                $college_counter++;
             ?>
-            <div class="college-card" data-college-id="<?php echo $college_id; ?>">
-                <div class="card-header">
+            <!-- College Item (works for both card and list view) -->
+            <div class="college-item" data-college-id="<?php echo $college_id; ?>" data-index="<?php echo $college_counter; ?>">
+                <div class="item-header">
                     <div class="college-badge <?php echo strtolower(preg_replace('/[^a-z0-9]/', '', strtolower($type))); ?>">
                         <?php echo esc_html($type); ?>
                     </div>
@@ -283,60 +307,66 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
                     </div>
                 </div>
 
-                <div class="card-body">
-                    <h3 class="college-name"><?php echo get_the_title(); ?></h3>
+                <div class="item-body">
+                    <div class="item-main">
+                        <h3 class="college-name">
+                            <a href="<?php echo esc_url($detail_url); ?>"><?php echo get_the_title(); ?></a>
+                        </h3>
 
-                    <?php if ($short_name): ?>
-                        <p class="college-short-name"><?php echo esc_html($short_name); ?></p>
-                    <?php endif; ?>
-
-                    <div class="college-meta">
-                        <span class="meta-item">
-                            📍 <?php echo esc_html($city . ', ' . $state); ?>
-                        </span>
-
-                        <?php if ($established): ?>
-                            <span class="meta-item">
-                                📅 Est. <?php echo esc_html($established); ?>
-                            </span>
+                        <?php if ($short_name): ?>
+                            <p class="college-short-name"><?php echo esc_html($short_name); ?></p>
                         <?php endif; ?>
 
-                        <?php if ($accreditation): ?>
+                        <div class="college-meta">
                             <span class="meta-item">
-                                ⭐ <?php echo esc_html($accreditation); ?>
+                                📍 <?php echo esc_html($city . ', ' . $state); ?>
                             </span>
-                        <?php endif; ?>
 
-                        <?php if ($ownership): ?>
-                            <span class="meta-item">
-                                🏛️ <?php echo esc_html($ownership); ?>
-                            </span>
-                        <?php endif; ?>
+                            <?php if ($established): ?>
+                                <span class="meta-item">
+                                    📅 Est. <?php echo esc_html($established); ?>
+                                </span>
+                            <?php endif; ?>
+
+                            <?php if ($accreditation): ?>
+                                <span class="meta-item">
+                                    ⭐ <?php echo esc_html($accreditation); ?>
+                                </span>
+                            <?php endif; ?>
+
+                            <?php if ($ownership): ?>
+                                <span class="meta-item">
+                                    🏛️ <?php echo esc_html($ownership); ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
-                    <?php if ($courses): ?>
-                        <div class="college-courses">
-                            <strong>Courses:</strong> <?php echo esc_html($courses); ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($fees_range): ?>
-                        <div class="college-fees">
-                            <strong>Annual Fees:</strong> ₹<?php echo esc_html($fees_range); ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="college-rankings">
-                        <?php if ($nirf_rank): ?>
-                            <span class="ranking-item">NIRF: #<?php echo $nirf_rank; ?></span>
+                    <div class="item-details">
+                        <?php if ($courses): ?>
+                            <div class="college-courses">
+                                <strong>Courses:</strong> <?php echo esc_html($courses); ?>
+                            </div>
                         <?php endif; ?>
-                        <?php if ($ck_rank): ?>
-                            <span class="ranking-item">CK: #<?php echo $ck_rank; ?></span>
+
+                        <?php if ($fees_range): ?>
+                            <div class="college-fees">
+                                <strong>Annual Fees:</strong> ₹<?php echo esc_html($fees_range); ?>
+                            </div>
                         <?php endif; ?>
+
+                        <div class="college-rankings">
+                            <?php if ($nirf_rank): ?>
+                                <span class="ranking-item">NIRF: #<?php echo $nirf_rank; ?></span>
+                            <?php endif; ?>
+                            <?php if ($ck_rank): ?>
+                                <span class="ranking-item">CK: #<?php echo $ck_rank; ?></span>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card-footer">
+                <div class="item-footer">
                     <a href="<?php echo esc_url($detail_url); ?>"
                        class="btn-view-details">
                         📋 View Details
@@ -362,13 +392,30 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
             <div class="no-results">
                 <h3>😔 No colleges found</h3>
                 <p>Try adjusting your filters or search criteria.</p>
-                <a href="<?php echo esc_url(remove_query_arg(array('college_type', 'state', 'city', 'category', 's', 'sort'))); ?>"
+                <a href="<?php echo esc_url(remove_query_arg(array('college_type', 'state', 'city', 'category', 's', 'sort', 'view', 'per_page'))); ?>"
                    class="btn-reset">Reset Filters</a>
             </div>
         <?php endif; ?>
     </div>
 
-    <!-- Pagination -->
+    <!-- Load More Button -->
+    <?php if ($colleges_query->found_posts > $colleges_query->post_count): ?>
+        <div class="load-more-section" id="load-more-section">
+            <button type="button" class="btn-load-more" id="load-more-btn"
+                    data-page="1"
+                    data-per-load="10"
+                    data-total="<?php echo $colleges_query->found_posts; ?>"
+                    data-loaded="<?php echo $colleges_query->post_count; ?>">
+                📥 Load More (10 Colleges)
+            </button>
+            <p class="load-more-info">
+                Loaded <span id="loaded-count"><?php echo $colleges_query->post_count; ?></span> of <?php echo $colleges_query->found_posts; ?> colleges
+            </p>
+        </div>
+    <?php endif; ?>
+
+    <!-- Traditional Pagination (hidden by default, shown if JS disabled) -->
+    <noscript>
     <?php if ($colleges_query->max_num_pages > 1): ?>
         <div class="colleges-pagination">
             <?php
@@ -381,6 +428,7 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
             ?>
         </div>
     <?php endif; ?>
+    </noscript>
 
 </div>
 
@@ -516,6 +564,79 @@ jQuery(document).ready(function($) {
         // Redirect to enhanced application form
         // Note: Create a page with slug 'apply' and add shortcode [ck_oneform_apply]
         window.location.href = '<?php echo esc_url(home_url('/apply/')); ?>?colleges=' + selectedColleges.map(c => c.id).join(',');
+    });
+
+    // View Toggle functionality
+    $('.view-btn').on('click', function() {
+        const viewMode = $(this).data('view');
+
+        // Update hidden input
+        $('#view-mode-input').val(viewMode);
+
+        // Update button states
+        $('.view-btn').removeClass('active');
+        $(this).addClass('active');
+
+        // Toggle container classes
+        $('#colleges-container').removeClass('card-view list-view').addClass(viewMode + '-view');
+
+        // Update URL without reload (optional)
+        const url = new URL(window.location);
+        url.searchParams.set('view', viewMode);
+        window.history.pushState({}, '', url);
+    });
+
+    // Load More functionality
+    let visibleCount = <?php echo $colleges_query->post_count; ?>;
+    const totalCount = <?php echo $colleges_query->found_posts; ?>;
+    const perLoad = 10;
+
+    // Initially hide items beyond the first batch (for load more to work)
+    // Since we're loading all items server-side, we'll hide them with JS
+    const $allItems = $('.college-item');
+    const initialVisible = Math.min(<?php echo $per_page === -1 ? 30 : $per_page; ?>, $allItems.length);
+
+    $allItems.each(function(index) {
+        if (index >= initialVisible) {
+            $(this).hide();
+        }
+    });
+    visibleCount = initialVisible;
+    $('#shown-count').text(visibleCount);
+    $('#loaded-count').text(visibleCount);
+
+    // Update load more button visibility
+    function updateLoadMoreButton() {
+        if (visibleCount >= $allItems.length) {
+            $('#load-more-section').hide();
+        } else {
+            $('#load-more-section').show();
+            $('#loaded-count').text(visibleCount);
+        }
+    }
+    updateLoadMoreButton();
+
+    // Load More Click Handler
+    $('#load-more-btn').on('click', function() {
+        const $btn = $(this);
+        $btn.prop('disabled', true).text('Loading...');
+
+        // Simulate loading delay for better UX
+        setTimeout(function() {
+            const newVisible = Math.min(visibleCount + perLoad, $allItems.length);
+
+            for (let i = visibleCount; i < newVisible; i++) {
+                $allItems.eq(i).fadeIn(300);
+            }
+
+            visibleCount = newVisible;
+            $('#shown-count').text(visibleCount);
+            $('#loaded-count').text(visibleCount);
+
+            $btn.prop('disabled', false).text('📥 Load More (10 Colleges)');
+
+            updateLoadMoreButton();
+        }, 500);
     });
 });
 </script>
@@ -664,14 +785,69 @@ jQuery(document).ready(function($) {
     color: #666;
 }
 
-.colleges-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 24px;
+/* View Toggle Styles */
+.view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.view-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.view-btn {
+    padding: 8px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.view-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.view-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.view-icon {
+    font-size: 1.2rem;
+}
+
+/* Colleges Container - Supports both card and list view */
+.colleges-container {
     margin-bottom: 40px;
 }
 
-.college-card {
+/* Card View */
+.colleges-container.card-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+/* List View */
+.colleges-container.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.college-item {
     background: white;
     border-radius: 12px;
     overflow: hidden;
@@ -680,22 +856,137 @@ jQuery(document).ready(function($) {
     position: relative;
 }
 
-.college-card:hover {
+.college-item:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
-.college-card.selected {
+.college-item.selected {
     border: 3px solid #10b981;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-.card-header {
+/* List view specific styles */
+.list-view .college-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.list-view .college-item:hover {
+    transform: translateY(-2px);
+}
+
+.list-view .item-header {
+    width: 150px;
+    flex-shrink: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.list-view .item-body {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 15px;
+}
+
+.list-view .item-main {
+    flex: 1;
+    min-width: 250px;
+}
+
+.list-view .item-details {
+    flex: 1;
+    min-width: 200px;
+    border-left: 1px solid #e0e0e0;
+    padding-left: 15px;
+}
+
+.list-view .item-footer {
+    width: 200px;
+    flex-shrink: 0;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.list-view .college-name {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+/* Card view specific styles */
+.card-view .item-header {
     background: #f8f9fa;
     padding: 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.card-view .item-body {
+    padding: 20px;
+}
+
+.card-view .item-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    display: flex;
+    gap: 10px;
+}
+
+.item-header {
+    background: #f8f9fa;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    display: flex;
+    gap: 10px;
+}
+
+/* Load More Button */
+.load-more-section {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.btn-load-more {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-load-more:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.btn-load-more:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.load-more-info {
+    margin-top: 10px;
+    color: #666;
+    font-size: 14px;
 }
 
 .college-badge {
@@ -749,6 +1040,16 @@ jQuery(document).ready(function($) {
     margin: 0 0 8px 0;
     color: #1a1a1a;
     line-height: 1.3;
+}
+
+.college-name a {
+    color: #1a1a1a;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.college-name a:hover {
+    color: #667eea;
 }
 
 .college-short-name {

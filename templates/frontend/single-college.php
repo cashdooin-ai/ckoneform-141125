@@ -725,17 +725,27 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
     text-transform: uppercase;
 }
 
-/* Navigation Tabs */
+/* Navigation Tabs - Sticky on Scroll */
 .college-tabs {
     max-width: 1200px;
     margin: 0 auto 30px;
-    padding: 0 20px;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     background: #f8f9fa;
     border-radius: 10px;
-    padding: 15px;
+    padding: 15px 20px;
+    /* Sticky positioning */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: box-shadow 0.3s, background 0.3s;
+}
+
+.college-tabs.is-sticky {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 0 0 10px 10px;
 }
 
 .college-tabs .tab {
@@ -759,6 +769,7 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
 /* Content Sections */
 .college-content {
     max-width: 1200px;
+    scroll-padding-top: 80px;
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -1206,17 +1217,40 @@ html {
 
 <script>
 jQuery(document).ready(function($) {
-    // Tab navigation highlight
+    const $tabs = $('.college-tabs');
+    const tabsTop = $tabs.offset().top;
+
+    // Tab navigation click handler
     $('.college-tabs .tab').on('click', function(e) {
+        e.preventDefault();
         $('.college-tabs .tab').removeClass('active');
         $(this).addClass('active');
+
+        // Smooth scroll to section
+        const targetId = $(this).attr('href');
+        const $target = $(targetId);
+        if ($target.length) {
+            const offsetTop = $target.offset().top - $tabs.outerHeight() - 20;
+            $('html, body').animate({
+                scrollTop: offsetTop
+            }, 500);
+        }
     });
 
-    // Highlight active section on scroll
+    // Highlight active section and detect sticky state on scroll
     $(window).on('scroll', function() {
         var scrollPos = $(window).scrollTop();
+
+        // Add sticky class when scrolled past original position
+        if (scrollPos > tabsTop) {
+            $tabs.addClass('is-sticky');
+        } else {
+            $tabs.removeClass('is-sticky');
+        }
+
+        // Highlight active section based on scroll position
         $('.content-section').each(function() {
-            var top = $(this).offset().top - 150;
+            var top = $(this).offset().top - $tabs.outerHeight() - 50;
             var bottom = top + $(this).outerHeight();
             var id = $(this).attr('id');
             if (scrollPos >= top && scrollPos <= bottom) {
