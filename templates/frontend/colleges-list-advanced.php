@@ -678,15 +678,29 @@ jQuery(document).ready(function($) {
 
 .filters-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
+}
+
+/* On larger screens, limit to 3 columns for better width */
+@media (min-width: 1200px) {
+    .filters-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .filter-item {
     display: flex;
     flex-direction: column;
     min-width: 0; /* Allow flexbox to shrink properly */
+    flex: 1;
 }
 
 .filter-item label {
@@ -694,14 +708,14 @@ jQuery(document).ready(function($) {
     font-weight: 600;
     margin-bottom: 8px;
     color: #333;
+    font-size: 13px;
 }
 
 .filter-input,
 .filter-select {
     width: 100%;
-    min-width: 200px; /* Ensure minimum width */
-    max-width: 100%; /* Allow full width */
-    padding: 12px 16px;
+    min-width: 250px; /* Increased minimum width */
+    padding: 12px 40px 12px 16px; /* More space for arrow */
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 14px;
@@ -717,12 +731,16 @@ jQuery(document).ready(function($) {
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 12px;
-    padding-right: 36px; /* Space for arrow */
+    /* Text handling */
+    text-overflow: ellipsis;
+    overflow: visible;
 }
 
 /* Make select box wider when dropdown opens */
 .filter-select {
     cursor: pointer;
+    /* Force minimum display width */
+    box-sizing: border-box;
 }
 
 /* Ensure dropdown text is not truncated */
@@ -731,10 +749,8 @@ jQuery(document).ready(function($) {
     background: white;
     color: #333;
     font-size: 14px;
-    /* Ensure full text display */
-    overflow: visible;
-    white-space: normal;
-    word-wrap: break-word;
+    /* Ensure full text display in dropdown */
+    min-height: 1.5em;
 }
 
 .filter-input:focus,

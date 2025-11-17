@@ -137,18 +137,23 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-header.php')) {
         </div>
     </section>
 
-    <!-- Navigation Tabs -->
-    <nav class="college-tabs">
-        <a href="#overview" class="tab active">Overview</a>
-        <a href="#highlights" class="tab">Highlights</a>
-        <a href="#courses" class="tab">Courses & Fees</a>
-        <a href="#placements" class="tab">Placements</a>
-        <a href="#scholarships" class="tab">Scholarships</a>
-        <a href="#facilities" class="tab">Facilities</a>
-        <a href="#gallery" class="tab">Gallery</a>
-        <a href="#ranking" class="tab">Ranking</a>
-        <a href="#contact" class="tab">Contact</a>
-    </nav>
+    <!-- Navigation Tabs with Progress -->
+    <div class="college-tabs-wrapper">
+        <div class="scroll-progress-bar">
+            <div class="scroll-progress-fill" id="scroll-progress"></div>
+        </div>
+        <nav class="college-tabs" id="college-tabs">
+            <a href="#overview" class="tab active">Overview</a>
+            <a href="#highlights" class="tab">Highlights</a>
+            <a href="#courses" class="tab">Courses & Fees</a>
+            <a href="#placements" class="tab">Placements</a>
+            <a href="#scholarships" class="tab">Scholarships</a>
+            <a href="#facilities" class="tab">Facilities</a>
+            <a href="#gallery" class="tab">Gallery</a>
+            <a href="#ranking" class="tab">Ranking</a>
+            <a href="#contact" class="tab">Contact</a>
+        </nav>
+    </div>
 
     <div class="college-content">
         <!-- Overview Section -->
@@ -734,31 +739,51 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
     text-transform: uppercase;
 }
 
-/* Navigation Tabs - Sticky on Scroll */
+/* Navigation Tabs - Sticky on Scroll with Progress Indicator */
+.college-tabs-wrapper {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-bottom: 30px;
+}
+
+/* Scroll Progress Bar */
+.scroll-progress-bar {
+    height: 4px;
+    background: #e9ecef;
+    position: relative;
+    width: 100%;
+}
+
+.scroll-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    width: 0%;
+    transition: width 0.1s ease;
+}
+
 .college-tabs {
     display: flex;
-    flex-wrap: wrap;
     gap: 10px;
     background: #f8f9fa;
     padding: 15px 20px;
     justify-content: center;
-    margin: 0 0 30px 0;
-
-    /* Critical sticky settings */
-    position: -webkit-sticky; /* Safari */
-    position: sticky;
-    top: 0;
-    z-index: 9999;
-
-    /* Full width spanning */
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    margin-right: calc(-50vw + 50%);
-    padding-left: calc(50vw - 50%);
-    padding-right: calc(50vw - 50%);
-
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    flex-wrap: nowrap; /* Don't wrap on mobile, scroll instead */
+}
+
+/* Hide scrollbar but keep functionality */
+.college-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .college-tabs.is-sticky {
@@ -783,6 +808,8 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
     font-weight: 500;
     transition: all 0.3s;
     border: 1px solid #e9ecef;
+    white-space: nowrap;
+    flex-shrink: 0; /* Prevent tabs from shrinking */
 }
 
 .college-tabs .tab:hover,
@@ -790,6 +817,36 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
     background: #667eea;
     color: white;
     border-color: #667eea;
+}
+
+/* Mobile: Show scroll hint */
+@media (max-width: 768px) {
+    .college-tabs {
+        justify-content: flex-start;
+        padding: 12px 15px;
+        gap: 8px;
+    }
+
+    .college-tabs .tab {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
+    /* Add fade effect to indicate more content */
+    .college-tabs::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 4px; /* Account for progress bar */
+        width: 40px;
+        background: linear-gradient(90deg, transparent, rgba(248, 249, 250, 0.9));
+        pointer-events: none;
+    }
+
+    .college-tabs.is-sticky::after {
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95));
+    }
 }
 
 /* Content Sections */
@@ -1207,31 +1264,205 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
     font-size: 13px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .college-hero h1 {
-        font-size: 2rem;
-    }
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================ */
 
-    .quick-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .college-tabs {
-        justify-content: center;
+/* Tablet and below */
+@media (max-width: 992px) {
+    .college-content {
+        padding: 0 15px;
     }
 
     .content-section {
-        padding: 25px;
+        padding: 30px 20px;
     }
 
-    .overview-details {
-        grid-template-columns: 1fr;
+    .quick-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .highlights-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .courses-table {
+        font-size: 13px;
+    }
+
+    .facilities-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .college-hero {
+        padding: 40px 20px;
+        min-height: 400px;
+    }
+
+    .college-hero h1 {
+        font-size: 1.8rem;
+        line-height: 1.2;
+    }
+
+    .college-hero .short-name {
+        font-size: 1.1rem;
+    }
+
+    .college-hero .location {
+        font-size: 1rem;
     }
 
     .hero-actions {
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .hero-actions .btn-primary,
+    .hero-actions .btn-secondary,
+    .hero-actions .btn-outline {
+        width: 100%;
+        text-align: center;
+    }
+
+    .quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 20px 15px;
+    }
+
+    .stat-card {
+        padding: 12px;
+    }
+
+    .stat-value {
+        font-size: 1.2rem;
+    }
+
+    .stat-label {
+        font-size: 11px;
+    }
+
+    .content-section {
+        padding: 20px 15px;
+        border-radius: 8px;
+    }
+
+    .content-section h2 {
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+    }
+
+    .content-section h3 {
+        font-size: 1.1rem;
+        margin: 20px 0 15px;
+    }
+
+    .overview-details {
+        grid-template-columns: 1fr;
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .highlights-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .highlight-card {
+        padding: 15px;
+    }
+
+    /* Make table scrollable horizontally */
+    .courses-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .courses-table {
+        font-size: 12px;
+        min-width: 600px; /* Prevent table from being too narrow */
+    }
+
+    .courses-table th,
+    .courses-table td {
+        padding: 10px 8px;
+    }
+
+    .facilities-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .facility-item {
+        padding: 15px;
+    }
+
+    .facility-icon {
+        font-size: 2rem;
+    }
+
+    .placements-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ranking-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .related-colleges {
+        grid-template-columns: 1fr;
+    }
+
+    .apply-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-apply-large,
+    .btn-register {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Extra small mobile */
+@media (max-width: 480px) {
+    .college-hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .quick-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .facilities-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .college-badges .badge {
+        font-size: 10px;
+        padding: 4px 10px;
     }
 }
 
@@ -1244,31 +1475,51 @@ html {
 <script>
 jQuery(document).ready(function($) {
     const $tabs = $('.college-tabs');
+    const $tabsWrapper = $('.college-tabs-wrapper');
+    const $progressFill = $('#scroll-progress');
 
     // Get initial position after page fully loads
     setTimeout(function() {
-        var tabsTop = $tabs.length ? $tabs.offset().top : 0;
+        var tabsTop = $tabsWrapper.length ? $tabsWrapper.offset().top : 0;
 
         // Tab navigation click handler
         $('.college-tabs .tab').on('click', function(e) {
             e.preventDefault();
+            const $clickedTab = $(this);
+
             $('.college-tabs .tab').removeClass('active');
-            $(this).addClass('active');
+            $clickedTab.addClass('active');
 
             // Smooth scroll to section
-            const targetId = $(this).attr('href');
+            const targetId = $clickedTab.attr('href');
             const $target = $(targetId);
             if ($target.length) {
-                const offsetTop = $target.offset().top - $tabs.outerHeight() - 20;
+                const offsetTop = $target.offset().top - $tabsWrapper.outerHeight() - 20;
                 $('html, body').animate({
                     scrollTop: offsetTop
                 }, 500);
+
+                // Scroll tab into view on mobile
+                if ($(window).width() <= 768) {
+                    const tabElement = $clickedTab[0];
+                    tabElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'center'
+                    });
+                }
             }
         });
 
         // Highlight active section and detect sticky state on scroll
         function handleScroll() {
             var scrollPos = $(window).scrollTop();
+            var docHeight = $(document).height();
+            var windowHeight = $(window).height();
+
+            // Calculate scroll progress (0-100%)
+            var scrollPercent = (scrollPos / (docHeight - windowHeight)) * 100;
+            $progressFill.css('width', scrollPercent + '%');
 
             // Add sticky class when scrolled past original position
             if (scrollPos > tabsTop - 10) {
@@ -1280,7 +1531,7 @@ jQuery(document).ready(function($) {
             // Highlight active section based on scroll position
             var currentSection = '';
             $('.content-section').each(function() {
-                var top = $(this).offset().top - $tabs.outerHeight() - 60;
+                var top = $(this).offset().top - $tabsWrapper.outerHeight() - 60;
                 var bottom = top + $(this).outerHeight();
                 var id = $(this).attr('id');
 
@@ -1290,13 +1541,38 @@ jQuery(document).ready(function($) {
             });
 
             if (currentSection) {
+                const $activeTab = $('.college-tabs .tab[href="#' + currentSection + '"]');
                 $('.college-tabs .tab').removeClass('active');
-                $('.college-tabs .tab[href="#' + currentSection + '"]').addClass('active');
+                $activeTab.addClass('active');
+
+                // Auto-scroll tab into view on mobile when scrolling
+                if ($(window).width() <= 768 && $activeTab.length) {
+                    const tabElement = $activeTab[0];
+                    const tabsContainer = $tabs[0];
+                    const tabLeft = tabElement.offsetLeft;
+                    const tabWidth = tabElement.offsetWidth;
+                    const containerScroll = tabsContainer.scrollLeft;
+                    const containerWidth = tabsContainer.offsetWidth;
+
+                    // Check if tab is not fully visible
+                    if (tabLeft < containerScroll || tabLeft + tabWidth > containerScroll + containerWidth) {
+                        tabsContainer.scrollTo({
+                            left: tabLeft - (containerWidth / 2) + (tabWidth / 2),
+                            behavior: 'smooth'
+                        });
+                    }
+                }
             }
         }
 
-        // Attach scroll handler
-        $(window).on('scroll', handleScroll);
+        // Attach scroll handler with throttle for performance
+        var scrollTimeout;
+        $(window).on('scroll', function() {
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            scrollTimeout = setTimeout(handleScroll, 10);
+        });
 
         // Initial check
         handleScroll();
