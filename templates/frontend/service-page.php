@@ -43,7 +43,55 @@ if (!$service) {
 // Check if student is logged in
 $is_logged_in = CK_OneForm_Student_Auth::is_student_logged_in();
 $student = $is_logged_in ? CK_OneForm_Student_Auth::get_current_student() : null;
+
+// Get all services for navigation
+$all_services = array();
+foreach ($services_data as $cat_services) {
+    foreach ($cat_services as $s) {
+        $all_services[$s['slug']] = $s;
+    }
+}
+
+// Find current category for breadcrumb
+$current_category = '';
+$category_names = array(
+    'admissions' => 'Admissions',
+    'learning' => 'Learning Resources',
+    'financial' => 'Financial Services',
+    'support' => 'Support',
+    'tools' => 'Tools & Resources',
+    'career' => 'Career Services',
+    'opportunities' => 'Opportunities',
+);
+foreach ($services_data as $cat_key => $cat_services) {
+    foreach ($cat_services as $s) {
+        if ($s['slug'] === $service_slug) {
+            $current_category = $cat_key;
+            break 2;
+        }
+    }
+}
 ?>
+
+<?php
+// Include professional header
+include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-header.php';
+?>
+
+<!-- Breadcrumb Navigation -->
+<div class="ck-service-breadcrumb">
+    <div class="breadcrumb-container">
+        <a href="<?php echo home_url('/oneform-home/'); ?>"><?php _e('Home', 'ck-oneform'); ?></a>
+        <span class="separator">/</span>
+        <a href="<?php echo home_url('/services/'); ?>"><?php _e('Services', 'ck-oneform'); ?></a>
+        <?php if ($current_category && isset($category_names[$current_category])): ?>
+            <span class="separator">/</span>
+            <span class="category"><?php echo esc_html($category_names[$current_category]); ?></span>
+        <?php endif; ?>
+        <span class="separator">/</span>
+        <span class="current"><?php echo esc_html($service['title']); ?></span>
+    </div>
+</div>
 
 <div class="ck-service-page">
     <!-- Hero Section -->
@@ -165,10 +213,116 @@ $student = $is_logged_in ? CK_OneForm_Student_Auth::get_current_student() : null
                 <?php endif; ?>
             </div>
         </section>
+
+        <!-- All Services Quick Navigation -->
+        <section class="service-section">
+            <h2>🌐 Explore All Services</h2>
+            <div class="all-services-nav">
+                <?php
+                $count = 0;
+                foreach ($all_services as $slug => $s):
+                    if ($slug !== $service_slug && $count < 12):
+                ?>
+                    <a href="<?php echo home_url('/services/?service=' . esc_attr($slug)); ?>" class="service-quick-link">
+                        <span class="quick-icon"><?php echo $s['icon']; ?></span>
+                        <span class="quick-title"><?php echo esc_html($s['title']); ?></span>
+                    </a>
+                <?php
+                        $count++;
+                    endif;
+                endforeach;
+                ?>
+                <a href="<?php echo home_url('/services/'); ?>" class="service-quick-link view-all">
+                    <span class="quick-icon">📋</span>
+                    <span class="quick-title"><?php _e('View All Services', 'ck-oneform'); ?></span>
+                </a>
+            </div>
+        </section>
     </div>
 </div>
 
+<?php
+// Include professional footer
+include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php';
+?>
+
 <style>
+/* Breadcrumb Styles */
+.ck-service-breadcrumb {
+    background: #f8f9fa;
+    padding: 15px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.breadcrumb-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.breadcrumb-container a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.breadcrumb-container a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-container .separator {
+    margin: 0 10px;
+    color: #aaa;
+}
+
+.breadcrumb-container .current {
+    color: #333;
+    font-weight: 600;
+}
+
+/* All Services Navigation */
+.all-services-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.service-quick-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s;
+}
+
+.service-quick-link:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+    transform: translateY(-2px);
+}
+
+.service-quick-link.view-all {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.quick-icon {
+    font-size: 1.3rem;
+}
+
+.quick-title {
+    font-size: 13px;
+    font-weight: 500;
+}
+
 .ck-service-page {
     width: 100%;
     min-height: 100vh;

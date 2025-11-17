@@ -118,6 +118,9 @@ class CK_OneForm {
 
         // Create default pages
         $this->create_default_pages();
+
+        // Create all service pages
+        $this->create_service_pages();
     }
 
     /**
@@ -293,6 +296,90 @@ class CK_OneForm {
                     'ping_status' => 'closed',
                 ));
             }
+        }
+    }
+
+    /**
+     * Create all service pages
+     * This creates WordPress pages for each service in the mega menu
+     */
+    private function create_service_pages() {
+        // Load service pages data
+        $services_data_file = CK_ONEFORM_PLUGIN_DIR . 'data/service-pages-content.php';
+        if (!file_exists($services_data_file)) {
+            return;
+        }
+
+        $services_data = include $services_data_file;
+
+        // Create a parent "Services" page if it doesn't exist
+        $services_parent = get_page_by_path('services');
+        $parent_id = 0;
+
+        if (!$services_parent) {
+            $parent_id = wp_insert_post(array(
+                'post_title' => 'Our Services',
+                'post_content' => '[ck_mega_menu]',
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_name' => 'services',
+                'comment_status' => 'closed',
+                'ping_status' => 'closed',
+            ));
+        } else {
+            $parent_id = $services_parent->ID;
+        }
+
+        // Track created pages for logging
+        $created_count = 0;
+
+        // Loop through all categories and services
+        foreach ($services_data as $category => $services) {
+            foreach ($services as $service) {
+                $slug = isset($service['slug']) ? $service['slug'] : '';
+                $title = isset($service['title']) ? $service['title'] : '';
+
+                if (empty($slug) || empty($title)) {
+                    continue;
+                }
+
+                // Check if page already exists
+                $page_check = get_page_by_path($slug);
+
+                if (!$page_check) {
+                    // Create the service page with shortcode
+                    $page_id = wp_insert_post(array(
+                        'post_title' => $title,
+                        'post_content' => '[ck_service_page slug="' . esc_attr($slug) . '"]',
+                        'post_status' => 'publish',
+                        'post_type' => 'page',
+                        'post_name' => $slug,
+                        'post_parent' => $parent_id,
+                        'comment_status' => 'closed',
+                        'ping_status' => 'closed',
+                        'menu_order' => $created_count,
+                    ));
+
+                    if ($page_id && !is_wp_error($page_id)) {
+                        // Add SEO meta if available
+                        if (isset($service['subtitle'])) {
+                            update_post_meta($page_id, '_ck_service_subtitle', $service['subtitle']);
+                        }
+                        if (isset($service['desc'])) {
+                            update_post_meta($page_id, '_ck_service_desc', $service['desc']);
+                        }
+                        if (isset($service['icon'])) {
+                            update_post_meta($page_id, '_ck_service_icon', $service['icon']);
+                        }
+                        $created_count++;
+                    }
+                }
+            }
+        }
+
+        // Log creation for debugging
+        if ($created_count > 0) {
+            update_option('ck_oneform_service_pages_count', $created_count);
         }
     }
 }
