@@ -21,6 +21,7 @@ class CK_OneForm_Navigation {
         add_action('admin_menu', array(__CLASS__, 'add_menu_setup_page'));
         add_action('admin_init', array(__CLASS__, 'register_settings'));
         add_action('wp_ajax_ck_setup_navigation', array(__CLASS__, 'ajax_setup_navigation'));
+        add_action('wp_ajax_ck_create_service_pages', array(__CLASS__, 'ajax_create_service_pages'));
         add_action('wp_head', array(__CLASS__, 'add_breadcrumb_schema'));
         add_filter('body_class', array(__CLASS__, 'add_page_body_classes'));
     }
@@ -98,6 +99,44 @@ class CK_OneForm_Navigation {
                     </button>
 
                     <div id="ck-nav-result" style="display: none; margin-top: 20px;"></div>
+                </div>
+
+                <div class="ck-nav-card" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+                    <h2><?php _e('⚠️ Create All Service Pages', 'ck-oneform'); ?></h2>
+                    <p><?php _e('Click this button to create all 39+ service pages (Mock Tests, Scholarships, Career Guidance, etc.). This is required for the mega menu links to work.', 'ck-oneform'); ?></p>
+
+                    <?php
+                    // Count existing service pages
+                    $services_data_file = CK_ONEFORM_PLUGIN_DIR . 'data/service-pages-content.php';
+                    $existing_service_pages = 0;
+                    $total_service_pages = 0;
+
+                    if (file_exists($services_data_file)) {
+                        $services_data = include $services_data_file;
+                        foreach ($services_data as $category => $services) {
+                            foreach ($services as $service) {
+                                $total_service_pages++;
+                                if (get_page_by_path($service['slug'])) {
+                                    $existing_service_pages++;
+                                }
+                            }
+                        }
+                    }
+                    ?>
+
+                    <p><strong><?php echo sprintf(__('Status: %d of %d service pages created', 'ck-oneform'), $existing_service_pages, $total_service_pages); ?></strong></p>
+
+                    <button id="ck-create-service-pages" class="button button-primary button-large" <?php echo ($existing_service_pages >= $total_service_pages) ? 'disabled' : ''; ?>>
+                        <?php
+                        if ($existing_service_pages >= $total_service_pages) {
+                            _e('All Service Pages Created ✓', 'ck-oneform');
+                        } else {
+                            _e('Create All Service Pages Now', 'ck-oneform');
+                        }
+                        ?>
+                    </button>
+
+                    <div id="ck-service-pages-result" style="display: none; margin-top: 20px;"></div>
                 </div>
 
                 <div class="ck-nav-card">
@@ -261,6 +300,46 @@ class CK_OneForm_Navigation {
                     },
                     complete: function() {
                         $btn.prop('disabled', false).text('Create Navigation Menus');
+                    }
+                });
+            });
+
+            // Service Pages Creation
+            $('#ck-create-service-pages').on('click', function() {
+                var $btn = $(this);
+                var $result = $('#ck-service-pages-result');
+
+                $btn.prop('disabled', true).text('Creating service pages... Please wait...');
+                $result.hide();
+
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'ck_create_service_pages',
+                        nonce: '<?php echo wp_create_nonce('ck_service_pages_setup'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $result.removeClass('error').addClass('success')
+                                   .html('<strong>✓ ' + response.data.message + '</strong>').show();
+                            if (response.data.created > 0) {
+                                $btn.text('All Service Pages Created ✓').prop('disabled', true);
+                                // Reload page after 2 seconds to update status
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 3000);
+                            }
+                        } else {
+                            $result.removeClass('success').addClass('error')
+                                   .html(response.data.message).show();
+                            $btn.prop('disabled', false).text('Create All Service Pages Now');
+                        }
+                    },
+                    error: function() {
+                        $result.removeClass('success').addClass('error')
+                               .html('An error occurred. Please try again.').show();
+                        $btn.prop('disabled', false).text('Create All Service Pages Now');
                     }
                 });
             });
@@ -596,6 +675,119 @@ class CK_OneForm_Navigation {
 
         echo '</ul>';
         echo '</nav>';
+    }
+
+    /**
+     * AJAX handler for creating all service pages
+     */
+    public static function ajax_create_service_pages() {
+        check_ajax_referer('ck_service_pages_setup', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => __('Permission denied.', 'ck-oneform')));
+        }
+
+        // Load service pages data
+        $services_data_file = CK_ONEFORM_PLUGIN_DIR . 'data/service-pages-content.php';
+        if (!file_exists($services_data_file)) {
+            wp_send_json_error(array('message' => __('Service pages data file not found.', 'ck-oneform')));
+        }
+
+        $services_data = include $services_data_file;
+
+        // Create a parent "Services" page if it doesn't exist
+        $services_parent = get_page_by_path('services');
+        $parent_id = 0;
+
+        if (!$services_parent) {
+            $parent_id = wp_insert_post(array(
+                'post_title' => 'Our Services',
+                'post_content' => '[ck_mega_menu]',
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_name' => 'services',
+                'comment_status' => 'closed',
+                'ping_status' => 'closed',
+            ));
+        } else {
+            $parent_id = $services_parent->ID;
+        }
+
+        // Track created and existing pages
+        $created_count = 0;
+        $existing_count = 0;
+        $created_pages = array();
+
+        // Loop through all categories and services
+        foreach ($services_data as $category => $services) {
+            foreach ($services as $service) {
+                $slug = isset($service['slug']) ? $service['slug'] : '';
+                $title = isset($service['title']) ? $service['title'] : '';
+
+                if (empty($slug) || empty($title)) {
+                    continue;
+                }
+
+                // Check if page already exists
+                $page_check = get_page_by_path($slug);
+
+                if (!$page_check) {
+                    // Create the service page with shortcode
+                    $page_id = wp_insert_post(array(
+                        'post_title' => $title,
+                        'post_content' => '[ck_service_page slug="' . esc_attr($slug) . '"]',
+                        'post_status' => 'publish',
+                        'post_type' => 'page',
+                        'post_name' => $slug,
+                        'post_parent' => $parent_id,
+                        'comment_status' => 'closed',
+                        'ping_status' => 'closed',
+                        'menu_order' => $created_count,
+                    ));
+
+                    if ($page_id && !is_wp_error($page_id)) {
+                        // Add SEO meta if available
+                        if (isset($service['subtitle'])) {
+                            update_post_meta($page_id, '_ck_service_subtitle', $service['subtitle']);
+                        }
+                        if (isset($service['desc'])) {
+                            update_post_meta($page_id, '_ck_service_desc', $service['desc']);
+                        }
+                        if (isset($service['icon'])) {
+                            update_post_meta($page_id, '_ck_service_icon', $service['icon']);
+                        }
+                        $created_count++;
+                        $created_pages[] = $title;
+                    }
+                } else {
+                    $existing_count++;
+                }
+            }
+        }
+
+        // Flush rewrite rules
+        flush_rewrite_rules();
+
+        if ($created_count > 0) {
+            update_option('ck_oneform_service_pages_count', $created_count);
+            $message = sprintf(
+                __('Successfully created %d service pages! (%d pages already existed) Go to Pages to see all created pages.', 'ck-oneform'),
+                $created_count,
+                $existing_count
+            );
+            wp_send_json_success(array(
+                'message' => $message,
+                'created' => $created_count,
+                'existing' => $existing_count,
+                'pages' => $created_pages
+            ));
+        } else {
+            wp_send_json_success(array(
+                'message' => sprintf(__('All %d service pages already exist. No new pages created.', 'ck-oneform'), $existing_count),
+                'created' => 0,
+                'existing' => $existing_count
+            ));
+        }
     }
 }
 
