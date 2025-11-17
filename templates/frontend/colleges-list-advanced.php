@@ -15,11 +15,13 @@ $selected_state = isset($_GET['state']) ? sanitize_text_field($_GET['state']) : 
 $selected_city = isset($_GET['city']) ? sanitize_text_field($_GET['city']) : '';
 $selected_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '';
 $search_query = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
-$sort_by = isset($_GET['sort']) ? sanitize_text_field($_GET['sort']) : 'nirf_rank';
+$sort_by = isset($_GET['sort']) ? sanitize_text_field($_GET['sort']) : 'name'; // Sort by name by default
 
 // Build query args
 $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
-$per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : 50; // Show 50 by default
+// Use shortcode limit as default, allow URL parameter to override
+$default_per_page = isset($shortcode_atts['limit']) ? intval($shortcode_atts['limit']) : 50;
+$per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : $default_per_page;
 if ($per_page > 500) $per_page = 500; // Cap at 500
 $args = array(
     'post_type' => 'ck_college',

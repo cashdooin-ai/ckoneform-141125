@@ -139,10 +139,13 @@ class CK_OneForm_Shortcodes {
      */
     public static function colleges_list($atts) {
         $atts = shortcode_atts(array(
-            'limit' => 10,
+            'limit' => 50,
             'type' => '',
             'advanced' => 'yes', // Use advanced template by default
         ), $atts);
+
+        // Make shortcode attributes available to template
+        $shortcode_atts = $atts;
 
         ob_start();
 
