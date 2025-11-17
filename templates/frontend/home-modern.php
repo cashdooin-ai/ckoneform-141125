@@ -42,6 +42,11 @@ if ($total_courses == 0) $total_courses = 150;
 if ($total_students == 0) $total_students = 5000;
 ?>
 
+<?php
+// Include professional header with mega menu
+include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-header.php';
+?>
+
 <div class="ck-oneform-modern-home">
 
     <!-- Hero Section with Gradient -->
@@ -418,3 +423,8 @@ if ($total_students == 0) $total_students = 5000;
     </section>
 
 </div>
+
+<?php
+// Include professional footer
+include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php';
+?>
