@@ -683,6 +683,12 @@ jQuery(document).ready(function($) {
     margin-bottom: 20px;
 }
 
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Allow flexbox to shrink properly */
+}
+
 .filter-item label {
     display: block;
     font-weight: 600;
@@ -693,24 +699,42 @@ jQuery(document).ready(function($) {
 .filter-input,
 .filter-select {
     width: 100%;
+    min-width: 200px; /* Ensure minimum width */
+    max-width: 100%; /* Allow full width */
     padding: 12px 16px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 14px;
+    line-height: 1.5;
     transition: all 0.3s;
     background: white;
-    /* Ensure text displays fully */
-    overflow: visible;
-    text-overflow: ellipsis;
-    white-space: normal;
+    /* Remove appearance for better control */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Add custom arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    padding-right: 36px; /* Space for arrow */
 }
 
-/* Fix dropdown option display */
+/* Make select box wider when dropdown opens */
+.filter-select {
+    cursor: pointer;
+}
+
+/* Ensure dropdown text is not truncated */
 .filter-select option {
-    padding: 8px;
+    padding: 10px;
+    background: white;
+    color: #333;
+    font-size: 14px;
+    /* Ensure full text display */
+    overflow: visible;
     white-space: normal;
     word-wrap: break-word;
-    overflow-wrap: break-word;
 }
 
 .filter-input:focus,

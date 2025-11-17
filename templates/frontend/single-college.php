@@ -74,6 +74,7 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-header.php')) {
     </div>
 </div>
 
+<div class="ck-college-detail-wrapper">
 <div class="ck-college-detail">
     <!-- Hero Section -->
     <section class="college-hero">
@@ -554,6 +555,7 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-header.php')) {
         </section>
     </div>
 </div>
+</div><!-- .ck-college-detail-wrapper -->
 
 <?php
 // Include footer
@@ -564,11 +566,16 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
 
 <style>
 /* College Detail Page Styles */
+.ck-college-detail-wrapper {
+    position: relative;
+    overflow: visible; /* Critical for sticky to work */
+    min-height: 100vh;
+}
+
 .ck-college-detail {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     color: #333;
     position: relative;
-    overflow: visible; /* Ensure sticky works */
 }
 
 /* Breadcrumb */
@@ -729,37 +736,40 @@ if (file_exists(CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-footer.php')) {
 
 /* Navigation Tabs - Sticky on Scroll */
 .college-tabs {
-    max-width: 100%;
-    margin: 0 0 30px 0;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     background: #f8f9fa;
-    border-radius: 0;
     padding: 15px 20px;
     justify-content: center;
-    /* Sticky positioning - IMPORTANT */
+    margin: 0 0 30px 0;
+
+    /* Critical sticky settings */
     position: -webkit-sticky; /* Safari */
     position: sticky;
     top: 0;
-    z-index: 1000;
-    transition: box-shadow 0.3s, background 0.3s;
-    /* Ensure it works in all contexts */
-    width: 100%;
-    left: 0;
-    right: 0;
+    z-index: 9999;
+
+    /* Full width spanning */
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding-left: calc(50vw - 50%);
+    padding-right: calc(50vw - 50%);
+
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .college-tabs.is-sticky {
     background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    border-radius: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 /* Add backdrop blur for better visibility when sticky */
 @supports (backdrop-filter: blur(10px)) {
     .college-tabs.is-sticky {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
     }
 }
@@ -1234,46 +1244,62 @@ html {
 <script>
 jQuery(document).ready(function($) {
     const $tabs = $('.college-tabs');
-    const tabsTop = $tabs.offset().top;
 
-    // Tab navigation click handler
-    $('.college-tabs .tab').on('click', function(e) {
-        e.preventDefault();
-        $('.college-tabs .tab').removeClass('active');
-        $(this).addClass('active');
+    // Get initial position after page fully loads
+    setTimeout(function() {
+        var tabsTop = $tabs.length ? $tabs.offset().top : 0;
 
-        // Smooth scroll to section
-        const targetId = $(this).attr('href');
-        const $target = $(targetId);
-        if ($target.length) {
-            const offsetTop = $target.offset().top - $tabs.outerHeight() - 20;
-            $('html, body').animate({
-                scrollTop: offsetTop
-            }, 500);
-        }
-    });
+        // Tab navigation click handler
+        $('.college-tabs .tab').on('click', function(e) {
+            e.preventDefault();
+            $('.college-tabs .tab').removeClass('active');
+            $(this).addClass('active');
 
-    // Highlight active section and detect sticky state on scroll
-    $(window).on('scroll', function() {
-        var scrollPos = $(window).scrollTop();
-
-        // Add sticky class when scrolled past original position
-        if (scrollPos > tabsTop) {
-            $tabs.addClass('is-sticky');
-        } else {
-            $tabs.removeClass('is-sticky');
-        }
-
-        // Highlight active section based on scroll position
-        $('.content-section').each(function() {
-            var top = $(this).offset().top - $tabs.outerHeight() - 50;
-            var bottom = top + $(this).outerHeight();
-            var id = $(this).attr('id');
-            if (scrollPos >= top && scrollPos <= bottom) {
-                $('.college-tabs .tab').removeClass('active');
-                $('.college-tabs .tab[href="#' + id + '"]').addClass('active');
+            // Smooth scroll to section
+            const targetId = $(this).attr('href');
+            const $target = $(targetId);
+            if ($target.length) {
+                const offsetTop = $target.offset().top - $tabs.outerHeight() - 20;
+                $('html, body').animate({
+                    scrollTop: offsetTop
+                }, 500);
             }
         });
-    });
+
+        // Highlight active section and detect sticky state on scroll
+        function handleScroll() {
+            var scrollPos = $(window).scrollTop();
+
+            // Add sticky class when scrolled past original position
+            if (scrollPos > tabsTop - 10) {
+                $tabs.addClass('is-sticky');
+            } else {
+                $tabs.removeClass('is-sticky');
+            }
+
+            // Highlight active section based on scroll position
+            var currentSection = '';
+            $('.content-section').each(function() {
+                var top = $(this).offset().top - $tabs.outerHeight() - 60;
+                var bottom = top + $(this).outerHeight();
+                var id = $(this).attr('id');
+
+                if (scrollPos >= top && scrollPos < bottom) {
+                    currentSection = id;
+                }
+            });
+
+            if (currentSection) {
+                $('.college-tabs .tab').removeClass('active');
+                $('.college-tabs .tab[href="#' + currentSection + '"]').addClass('active');
+            }
+        }
+
+        // Attach scroll handler
+        $(window).on('scroll', handleScroll);
+
+        // Initial check
+        handleScroll();
+    }, 100);
 });
 </script>
