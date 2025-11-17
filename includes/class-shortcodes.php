@@ -33,6 +33,8 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_contact_page', array(__CLASS__, 'contact_page'));
         add_shortcode('ck_about_page', array(__CLASS__, 'about_page'));
         add_shortcode('ck_faq_page', array(__CLASS__, 'faq_page'));
+        add_shortcode('ck_college_detail', array(__CLASS__, 'college_detail'));
+        add_shortcode('ck_colleges_advanced', array(__CLASS__, 'colleges_advanced'));
     }
 
     /**
@@ -268,6 +270,30 @@ class CK_OneForm_Shortcodes {
     public static function faq_page($atts) {
         ob_start();
         include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/faq-page.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * College detail page shortcode
+     * Usage: [ck_college_detail id="123"] or pass ?college_id=123 in URL
+     */
+    public static function college_detail($atts) {
+        $atts = shortcode_atts(array(
+            'id' => 0,
+        ), $atts);
+
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/single-college.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * Advanced colleges list with filters
+     * Usage: [ck_colleges_advanced]
+     */
+    public static function colleges_advanced($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/colleges-list-advanced.php';
         return ob_get_clean();
     }
 }

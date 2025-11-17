@@ -252,6 +252,14 @@ class CK_OneForm {
                 'title' => 'Partner Colleges',
                 'content' => '[ck_oneform_colleges limit="100"]'
             ),
+            'college-list' => array(
+                'title' => 'College List',
+                'content' => '[ck_colleges_advanced]'
+            ),
+            'college-details' => array(
+                'title' => 'College Details',
+                'content' => '[ck_college_detail]'
+            ),
             'student-login' => array(
                 'title' => 'Student Login',
                 'content' => '[ck_student_login]'

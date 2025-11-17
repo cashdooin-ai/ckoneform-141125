@@ -19,9 +19,11 @@ $sort_by = isset($_GET['sort']) ? sanitize_text_field($_GET['sort']) : 'nirf_ran
 
 // Build query args
 $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+$per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : 50; // Show 50 by default
+if ($per_page > 500) $per_page = 500; // Cap at 500
 $args = array(
     'post_type' => 'ck_college',
-    'posts_per_page' => 20,
+    'posts_per_page' => $per_page,
     'paged' => $paged,
     'post_status' => 'publish',
 );
@@ -75,18 +77,18 @@ if (!empty($selected_category)) {
 
 // Add sorting
 if ($sort_by === 'nirf_rank') {
-    $args['meta_key'] = 'nirf_rank';
+    $args['meta_key'] = '_ck_nirf_rank';
     $args['orderby'] = 'meta_value_num';
     $args['order'] = 'ASC';
 } elseif ($sort_by === 'ck_rank') {
-    $args['meta_key'] = 'ck_rank';
+    $args['meta_key'] = '_ck_ck_rank';
     $args['orderby'] = 'meta_value_num';
     $args['order'] = 'ASC';
 } elseif ($sort_by === 'name') {
     $args['orderby'] = 'title';
     $args['order'] = 'ASC';
 } elseif ($sort_by === 'established') {
-    $args['meta_key'] = 'established';
+    $args['meta_key'] = '_ck_established';
     $args['orderby'] = 'meta_value_num';
     $args['order'] = 'DESC';
 }
@@ -195,11 +197,23 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
                     </select>
                 </div>
 
+                <!-- Per Page -->
+                <div class="filter-item">
+                    <label>📄 Per Page</label>
+                    <select name="per_page" class="filter-select">
+                        <option value="25" <?php selected($per_page, 25); ?>>25 Colleges</option>
+                        <option value="50" <?php selected($per_page, 50); ?>>50 Colleges</option>
+                        <option value="100" <?php selected($per_page, 100); ?>>100 Colleges</option>
+                        <option value="200" <?php selected($per_page, 200); ?>>200 Colleges</option>
+                        <option value="500" <?php selected($per_page, 500); ?>>500 Colleges</option>
+                    </select>
+                </div>
+
             </div>
 
             <div class="filter-actions">
                 <button type="submit" class="btn-filter">🔍 Apply Filters</button>
-                <a href="<?php echo esc_url(remove_query_arg(array('college_type', 'state', 'city', 'category', 's', 'sort'))); ?>"
+                <a href="<?php echo esc_url(remove_query_arg(array('college_type', 'state', 'city', 'category', 's', 'sort', 'per_page'))); ?>"
                    class="btn-reset">🔄 Reset All</a>
                 <button type="button" class="btn-select-mode" id="toggle-selection-mode">
                     ✅ Multi-Select Mode
@@ -230,22 +244,28 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
         <?php if ($colleges_query->have_posts()): ?>
             <?php while ($colleges_query->have_posts()): $colleges_query->the_post();
                 $college_id = get_the_ID();
-                $short_name = get_post_meta($college_id, 'short_name', true);
-                $type = get_post_meta($college_id, 'college_type', true);
-                $state = get_post_meta($college_id, 'state', true);
-                $city = get_post_meta($college_id, 'city', true);
-                $nirf_rank = get_post_meta($college_id, 'nirf_rank', true);
+                // Try new meta keys first, fallback to old ones
+                $short_name = get_post_meta($college_id, '_ck_short_name', true) ?: get_post_meta($college_id, 'short_name', true);
+                $type_terms = wp_get_post_terms($college_id, 'college_type', array('fields' => 'names'));
+                $type = !empty($type_terms) ? $type_terms[0] : (get_post_meta($college_id, 'college_type', true) ?: 'College');
+                $state_terms = wp_get_post_terms($college_id, 'college_state', array('fields' => 'names'));
+                $state = !empty($state_terms) ? $state_terms[0] : get_post_meta($college_id, 'state', true);
+                $city_terms = wp_get_post_terms($college_id, 'college_city', array('fields' => 'names'));
+                $city = !empty($city_terms) ? $city_terms[0] : get_post_meta($college_id, 'city', true);
+                $nirf_rank = get_post_meta($college_id, '_ck_nirf_rank', true) ?: get_post_meta($college_id, 'nirf_rank', true);
                 $ck_rank = get_post_meta($college_id, 'ck_rank', true);
-                $established = get_post_meta($college_id, 'established', true);
-                $accreditation = get_post_meta($college_id, 'accreditation', true);
-                $courses = get_post_meta($college_id, 'courses', true);
-                $fees_range = get_post_meta($college_id, 'fees_range', true);
-                $website = get_post_meta($college_id, 'website', true);
-                $ownership = get_post_meta($college_id, 'ownership', true);
+                $established = get_post_meta($college_id, '_ck_established', true) ?: get_post_meta($college_id, 'established', true);
+                $accreditation = get_post_meta($college_id, '_ck_accreditation', true) ?: get_post_meta($college_id, 'accreditation', true);
+                $courses = get_post_meta($college_id, '_ck_courses_offered', true) ?: get_post_meta($college_id, 'courses', true);
+                $fees_range = get_post_meta($college_id, '_ck_fees_range', true) ?: get_post_meta($college_id, 'fees_range', true);
+                $website = get_post_meta($college_id, '_ck_website', true) ?: get_post_meta($college_id, 'website', true);
+                $ownership = get_post_meta($college_id, '_ck_ownership', true) ?: get_post_meta($college_id, 'ownership', true);
+                $avg_placement = get_post_meta($college_id, '_ck_avg_placement', true);
+                $detail_url = add_query_arg('college_id', $college_id, home_url('/college-details/'));
             ?>
             <div class="college-card" data-college-id="<?php echo $college_id; ?>">
                 <div class="card-header">
-                    <div class="college-badge <?php echo strtolower($type); ?>">
+                    <div class="college-badge <?php echo strtolower(preg_replace('/[^a-z0-9]/', '', strtolower($type))); ?>">
                         <?php echo esc_html($type); ?>
                     </div>
                     <?php if ($nirf_rank): ?>
@@ -315,18 +335,22 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
                 </div>
 
                 <div class="card-footer">
+                    <a href="<?php echo esc_url($detail_url); ?>"
+                       class="btn-view-details">
+                        📋 View Details
+                    </a>
                     <?php if ($website): ?>
                         <a href="<?php echo esc_url($website); ?>"
                            target="_blank"
                            class="btn-website">
-                            🌐 Visit Website
+                            🌐 Website
                         </a>
                     <?php endif; ?>
                     <button type="button"
                             class="btn-select-college"
                             data-college-id="<?php echo $college_id; ?>"
                             data-college-name="<?php echo esc_attr(get_the_title()); ?>">
-                        ➕ Select College
+                        ➕ Select
                     </button>
                 </div>
             </div>
@@ -772,6 +796,7 @@ jQuery(document).ready(function($) {
     gap: 10px;
 }
 
+.btn-view-details,
 .btn-website,
 .btn-select-college {
     flex: 1;
@@ -783,7 +808,18 @@ jQuery(document).ready(function($) {
     transition: all 0.3s;
     text-decoration: none;
     border: none;
-    font-size: 14px;
+    font-size: 13px;
+}
+
+.btn-view-details {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-view-details:hover {
+    background: #d97706;
+    color: white;
+    transform: translateY(-2px);
 }
 
 .btn-website {
@@ -791,9 +827,18 @@ jQuery(document).ready(function($) {
     color: white;
 }
 
+.btn-website:hover {
+    background: #5568d3;
+    color: white;
+}
+
 .btn-select-college {
     background: #10b981;
     color: white;
+}
+
+.btn-select-college:hover {
+    background: #059669;
 }
 
 .selection-checkbox {
