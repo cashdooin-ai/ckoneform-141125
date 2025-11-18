@@ -17,9 +17,12 @@ class CK_OneForm_Data_Seeder {
      * Initialize seeder hooks
      */
     public static function init() {
-        add_action('admin_menu', array(__CLASS__, 'add_seeder_page'));
-        add_action('wp_ajax_ck_seed_data', array(__CLASS__, 'ajax_seed_data'));
-        add_action('wp_ajax_ck_clear_seed_data', array(__CLASS__, 'ajax_clear_data'));
+        // Only add admin menu and AJAX handlers in admin context
+        if (is_admin()) {
+            add_action('admin_menu', array(__CLASS__, 'add_seeder_page'), 20); // Priority 20 to load after Student Manager
+            add_action('wp_ajax_ck_seed_data', array(__CLASS__, 'ajax_seed_data'));
+            add_action('wp_ajax_ck_clear_seed_data', array(__CLASS__, 'ajax_clear_data'));
+        }
     }
 
     /**
