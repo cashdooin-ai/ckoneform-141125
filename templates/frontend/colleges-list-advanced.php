@@ -696,16 +696,9 @@ jQuery(document).ready(function($) {
 
 .filters-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: 1fr 1fr; /* Fixed 2 columns for wider boxes */
     gap: 20px;
     margin-bottom: 20px;
-}
-
-/* On larger screens, limit to 3 columns for better width */
-@media (min-width: 1200px) {
-    .filters-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
 }
 
 @media (max-width: 768px) {
@@ -715,10 +708,8 @@ jQuery(document).ready(function($) {
 }
 
 .filter-item {
-    display: flex;
-    flex-direction: column;
-    min-width: 0; /* Allow flexbox to shrink properly */
-    flex: 1;
+    display: block;
+    width: 100%;
 }
 
 .filter-item label {
@@ -731,15 +722,16 @@ jQuery(document).ready(function($) {
 
 .filter-input,
 .filter-select {
-    width: 100%;
-    min-width: 250px; /* Increased minimum width */
-    padding: 12px 40px 12px 16px; /* More space for arrow */
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 12px 40px 12px 16px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 14px;
     line-height: 1.5;
     transition: all 0.3s;
     background: white;
+    box-sizing: border-box;
     /* Remove appearance for better control */
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -749,16 +741,11 @@ jQuery(document).ready(function($) {
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 12px;
-    /* Text handling */
-    text-overflow: ellipsis;
-    overflow: visible;
 }
 
 /* Make select box wider when dropdown opens */
 .filter-select {
     cursor: pointer;
-    /* Force minimum display width */
-    box-sizing: border-box;
 }
 
 /* Ensure dropdown text is not truncated */
@@ -767,7 +754,6 @@ jQuery(document).ready(function($) {
     background: white;
     color: #333;
     font-size: 14px;
-    /* Ensure full text display in dropdown */
     min-height: 1.5em;
 }
 
@@ -1435,22 +1421,37 @@ jQuery(document).ready(function($) {
         font-size: 1.8rem;
     }
 
-    /* Image adjustments for mobile */
+    /* Card view - image on top */
     .card-view .item-image {
         height: 180px;
+        width: 100%;
+    }
+
+    /* List view - proper mobile layout */
+    .list-view .college-item {
+        display: flex;
+        flex-direction: column; /* Stack vertically on mobile */
     }
 
     .list-view .item-image {
-        width: 120px;
-        height: 120px;
+        width: 100%;
+        height: 180px; /* Same as card view */
     }
 
-    .list-view .college-item {
-        flex-wrap: nowrap;
+    .list-view .item-header {
+        width: 100%;
+        padding: 12px 15px;
     }
 
     .list-view .item-body {
         flex-direction: column;
+        padding: 15px;
+        width: 100%;
+    }
+
+    .list-view .item-main {
+        min-width: auto;
+        width: 100%;
     }
 
     .list-view .item-details {
@@ -1459,6 +1460,13 @@ jQuery(document).ready(function($) {
         padding-left: 0;
         padding-top: 10px;
         margin-top: 10px;
+        min-width: auto;
+        width: 100%;
+    }
+
+    .list-view .item-footer {
+        width: 100%;
+        padding: 12px 15px;
     }
 
     .image-rank-badge {
@@ -1480,12 +1488,8 @@ jQuery(document).ready(function($) {
 
 /* Extra small mobile */
 @media (max-width: 480px) {
+    .card-view .item-image,
     .list-view .item-image {
-        width: 100px;
-        height: 100px;
-    }
-
-    .card-view .item-image {
         height: 160px;
     }
 }

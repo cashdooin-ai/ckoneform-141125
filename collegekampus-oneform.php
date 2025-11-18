@@ -63,6 +63,9 @@ class CK_OneForm {
         add_action('init', array($this, 'init'));
         add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
         add_action('wp_enqueue_scripts', array($this, 'frontend_enqueue_scripts'));
+
+        // Add template filter for single college pages
+        add_filter('single_template', array($this, 'load_college_template'));
     }
 
     /**
@@ -151,6 +154,19 @@ class CK_OneForm {
 
         // Register shortcodes
         CK_OneForm_Shortcodes::register_shortcodes();
+    }
+
+    /**
+     * Load custom template for single college posts
+     */
+    public function load_college_template($template) {
+        if (is_singular('ck_college')) {
+            $plugin_template = CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/single-ck_college.php';
+            if (file_exists($plugin_template)) {
+                return $plugin_template;
+            }
+        }
+        return $template;
     }
 
     /**
