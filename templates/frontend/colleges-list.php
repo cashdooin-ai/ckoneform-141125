@@ -61,7 +61,7 @@ $colleges = new WP_Query($args);
                             </div>
 
                             <div class="college-actions">
-                                <a href="<?php the_permalink(); ?>" class="btn btn-sm btn-outline-primary">
+                                <a href="<?php echo esc_url(home_url('/college-details/?college_id=' . get_the_ID())); ?>" class="btn btn-sm btn-outline-primary">
                                     <?php _e('View Details', 'ck-oneform'); ?>
                                 </a>
                             </div>

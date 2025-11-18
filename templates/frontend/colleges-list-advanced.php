@@ -315,6 +315,10 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
                 </div>
 
                 <div class="card-footer">
+                    <a href="<?php echo esc_url(home_url('/college-details/?college_id=' . $college_id)); ?>"
+                       class="btn-view-details">
+                        📖 View Details
+                    </a>
                     <?php if ($website): ?>
                         <a href="<?php echo esc_url($website); ?>"
                            target="_blank"
@@ -770,8 +774,10 @@ jQuery(document).ready(function($) {
     background: #f8f9fa;
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
+.btn-view-details,
 .btn-website,
 .btn-select-college {
     flex: 1;
@@ -784,6 +790,17 @@ jQuery(document).ready(function($) {
     text-decoration: none;
     border: none;
     font-size: 14px;
+    display: inline-block;
+}
+
+.btn-view-details {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-view-details:hover {
+    background: #d97706;
+    transform: translateY(-2px);
 }
 
 .btn-website {
@@ -791,9 +808,19 @@ jQuery(document).ready(function($) {
     color: white;
 }
 
+.btn-website:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+}
+
 .btn-select-college {
     background: #10b981;
     color: white;
+}
+
+.btn-select-college:hover {
+    background: #059669;
+    transform: translateY(-2px);
 }
 
 .selection-checkbox {
@@ -967,6 +994,17 @@ jQuery(document).ready(function($) {
 
     .colleges-header h1 {
         font-size: 1.8rem;
+    }
+
+    .card-footer {
+        flex-direction: column;
+    }
+
+    .btn-view-details,
+    .btn-website,
+    .btn-select-college {
+        width: 100%;
+        flex: none;
     }
 }
 </style>

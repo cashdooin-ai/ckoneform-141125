@@ -23,6 +23,7 @@ class CK_OneForm_Shortcodes {
         add_shortcode('ck_oneform_payment', array(__CLASS__, 'payment_page'));
         add_shortcode('ck_oneform_courses', array(__CLASS__, 'courses_list'));
         add_shortcode('ck_oneform_colleges', array(__CLASS__, 'colleges_list'));
+        add_shortcode('ck_college_details', array(__CLASS__, 'college_details'));
         add_shortcode('ck_oneform_apply', array(__CLASS__, 'enhanced_application'));
         add_shortcode('ck_student_login', array(__CLASS__, 'student_login'));
         add_shortcode('ck_student_dashboard', array(__CLASS__, 'student_dashboard'));
@@ -147,6 +148,16 @@ class CK_OneForm_Shortcodes {
             include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/colleges-list.php';
         }
 
+        return ob_get_clean();
+    }
+
+    /**
+     * College details page shortcode
+     * Usage: [ck_college_details] - reads ?college_id from URL
+     */
+    public static function college_details($atts) {
+        ob_start();
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/college-details-page.php';
         return ob_get_clean();
     }
 
