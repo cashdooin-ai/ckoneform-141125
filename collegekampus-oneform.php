@@ -80,6 +80,7 @@ class CK_OneForm {
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-pdf-generator.php';
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-student-auth.php';
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-seo.php';
+        require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-scholarship-recommender.php';
 
         // Admin includes
         if (is_admin()) {

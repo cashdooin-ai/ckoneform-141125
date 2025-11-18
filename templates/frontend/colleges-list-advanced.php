@@ -217,12 +217,36 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
         </div>
     </div>
 
-    <!-- Results Info -->
-    <div class="results-info">
-        <p>
-            Showing <strong><?php echo $colleges_query->post_count; ?></strong> of
-            <strong><?php echo $colleges_query->found_posts; ?></strong> colleges
-        </p>
+    <!-- Results Info & View Toggle -->
+    <div class="results-header">
+        <div class="results-info">
+            <p>
+                Showing <strong><?php echo $colleges_query->post_count; ?></strong> of
+                <strong><?php echo $colleges_query->found_posts; ?></strong> colleges
+            </p>
+        </div>
+        <div class="view-toggle">
+            <button type="button" class="view-btn active" data-view="grid" title="Card View">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                </svg>
+                Card View
+            </button>
+            <button type="button" class="view-btn" data-view="list" title="List View">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+                List View
+            </button>
+        </div>
     </div>
 
     <!-- Colleges Grid -->
@@ -346,17 +370,21 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
         <?php endif; ?>
     </div>
 
-    <!-- Pagination -->
+    <!-- Load More Button -->
     <?php if ($colleges_query->max_num_pages > 1): ?>
-        <div class="colleges-pagination">
-            <?php
-            echo paginate_links(array(
-                'total' => $colleges_query->max_num_pages,
-                'current' => $paged,
-                'prev_text' => '« Previous',
-                'next_text' => 'Next »',
-            ));
-            ?>
+        <div class="load-more-section">
+            <button type="button"
+                    id="load-more-colleges"
+                    class="btn-load-more"
+                    data-page="1"
+                    data-max-pages="<?php echo $colleges_query->max_num_pages; ?>"
+                    data-query='<?php echo json_encode($args); ?>'>
+                <span class="load-more-text">Load More Colleges</span>
+                <span class="load-more-spinner" style="display: none;">⏳ Loading...</span>
+            </button>
+            <div class="pagination-info">
+                Page <span id="current-page">1</span> of <?php echo $colleges_query->max_num_pages; ?>
+            </div>
         </div>
     <?php endif; ?>
 
@@ -494,6 +522,98 @@ jQuery(document).ready(function($) {
         // Redirect to enhanced application form
         // Note: Create a page with slug 'apply' and add shortcode [ck_oneform_apply]
         window.location.href = '<?php echo esc_url(home_url('/apply/')); ?>?colleges=' + selectedColleges.map(c => c.id).join(',');
+    });
+
+    // View Toggle functionality
+    $('.view-btn').on('click', function() {
+        const view = $(this).data('view');
+
+        $('.view-btn').removeClass('active');
+        $(this).addClass('active');
+
+        const grid = $('#colleges-grid');
+
+        if (view === 'list') {
+            grid.removeClass('grid-view').addClass('list-view');
+            localStorage.setItem('collegeView', 'list');
+        } else {
+            grid.removeClass('list-view').addClass('grid-view');
+            localStorage.setItem('collegeView', 'grid');
+        }
+    });
+
+    // Restore saved view preference
+    const savedView = localStorage.getItem('collegeView');
+    if (savedView === 'list') {
+        $('.view-btn[data-view="list"]').trigger('click');
+    }
+
+    // Load More functionality
+    $('#load-more-colleges').on('click', function() {
+        const button = $(this);
+        const currentPage = parseInt(button.data('page'));
+        const maxPages = parseInt(button.data('max-pages'));
+        const nextPage = currentPage + 1;
+
+        if (nextPage > maxPages) {
+            button.prop('disabled', true).text('No More Colleges');
+            return;
+        }
+
+        // Show loading state
+        button.prop('disabled', true);
+        $('.load-more-text').hide();
+        $('.load-more-spinner').show();
+
+        // Get current query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('paged', nextPage);
+
+        // AJAX request
+        $.ajax({
+            url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            type: 'POST',
+            data: {
+                action: 'load_more_colleges',
+                paged: nextPage,
+                college_type: urlParams.get('college_type') || '',
+                state: urlParams.get('state') || '',
+                city: urlParams.get('city') || '',
+                category: urlParams.get('category') || '',
+                s: urlParams.get('s') || '',
+                sort: urlParams.get('sort') || 'nirf_rank'
+            },
+            success: function(response) {
+                if (response.success && response.data.html) {
+                    // Append new colleges to grid
+                    $('#colleges-grid').append(response.data.html);
+
+                    // Update page number
+                    button.data('page', nextPage);
+                    $('#current-page').text(nextPage);
+
+                    // Check if we've reached the end
+                    if (nextPage >= maxPages) {
+                        button.text('No More Colleges');
+                    } else {
+                        $('.load-more-text').show();
+                        $('.load-more-spinner').hide();
+                        button.prop('disabled', false);
+                    }
+                } else {
+                    alert('Failed to load more colleges');
+                    $('.load-more-text').show();
+                    $('.load-more-spinner').hide();
+                    button.prop('disabled', false);
+                }
+            },
+            error: function() {
+                alert('Error loading colleges. Please try again.');
+                $('.load-more-text').show();
+                $('.load-more-spinner').hide();
+                button.prop('disabled', false);
+            }
+        });
     });
 });
 </script>
@@ -637,9 +757,50 @@ jQuery(document).ready(function($) {
     cursor: pointer;
 }
 
-.results-info {
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.results-info {
     color: #666;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 8px;
+    background: #f5f5f5;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.view-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #666;
+    font-size: 14px;
+}
+
+.view-btn:hover {
+    background: #e0e0e0;
+}
+
+.view-btn.active {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .colleges-grid {
@@ -647,6 +808,43 @@ jQuery(document).ready(function($) {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 24px;
     margin-bottom: 40px;
+    transition: all 0.3s;
+}
+
+/* List View Layout */
+.colleges-grid.list-view {
+    grid-template-columns: 1fr;
+}
+
+.colleges-grid.list-view .college-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+}
+
+.colleges-grid.list-view .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.colleges-grid.list-view .card-body {
+    padding: 20px 0;
+}
+
+.colleges-grid.list-view .card-footer {
+    flex-direction: column;
+    gap: 10px;
+    min-width: 200px;
+}
+
+.colleges-grid.list-view .college-meta {
+    flex-wrap: wrap;
+}
+
+.colleges-grid.list-view .college-name {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
 }
 
 .college-card {
@@ -835,27 +1033,45 @@ jQuery(document).ready(function($) {
     cursor: pointer;
 }
 
-.colleges-pagination {
+/* Load More Section */
+.load-more-section {
     text-align: center;
     margin: 40px 0;
+    padding: 20px;
 }
 
-.colleges-pagination .page-numbers {
-    display: inline-block;
-    padding: 10px 16px;
-    margin: 0 4px;
-    background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
-    text-decoration: none;
-    color: #333;
-    transition: all 0.3s;
-}
-
-.colleges-pagination .page-numbers.current {
-    background: #667eea;
+.btn-load-more {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border-color: #667eea;
+    padding: 16px 48px;
+    border-radius: 30px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-load-more:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-load-more:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.load-more-spinner {
+    display: inline-block;
+}
+
+.pagination-info {
+    margin-top: 15px;
+    color: #666;
+    font-size: 14px;
 }
 
 .no-results {

@@ -130,11 +130,27 @@ while (have_posts()) : the_post();
             <?php endif; ?>
         </div>
 
+        <!-- Sticky Navigation with Progress Bar -->
+        <div class="college-sticky-nav" id="college-sticky-nav">
+            <div class="container">
+                <div class="nav-progress-bar" id="nav-progress-bar"></div>
+                <nav class="college-nav-tabs">
+                    <a href="#about" class="nav-tab active" data-section="about">About</a>
+                    <?php if ($courses): ?><a href="#courses" class="nav-tab" data-section="courses">Courses</a><?php endif; ?>
+                    <?php if ($facilities): ?><a href="#facilities" class="nav-tab" data-section="facilities">Facilities</a><?php endif; ?>
+                    <?php if ($placements || $avg_package || $highest_package): ?><a href="#placements" class="nav-tab" data-section="placements">Placements</a><?php endif; ?>
+                    <a href="#fees" class="nav-tab" data-section="fees">Fees</a>
+                    <a href="#admission" class="nav-tab" data-section="admission">Admission</a>
+                    <a href="#contact" class="nav-tab" data-section="contact">Contact</a>
+                </nav>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div class="college-content-area">
             <div class="college-main">
                 <!-- About Section -->
-                <div class="content-section">
+                <div class="content-section" id="about">
                     <h2>About <?php the_title(); ?></h2>
                     <div class="section-content">
                         <?php
@@ -150,7 +166,7 @@ while (have_posts()) : the_post();
 
                 <!-- Courses Section -->
                 <?php if ($courses): ?>
-                    <div class="content-section">
+                    <div class="content-section" id="courses">
                         <h2>Courses Offered</h2>
                         <div class="section-content">
                             <div class="courses-list">
@@ -162,7 +178,7 @@ while (have_posts()) : the_post();
 
                 <!-- Facilities Section -->
                 <?php if ($facilities): ?>
-                    <div class="content-section">
+                    <div class="content-section" id="facilities">
                         <h2>Facilities</h2>
                         <div class="section-content">
                             <div class="facilities-list">
@@ -174,7 +190,7 @@ while (have_posts()) : the_post();
 
                 <!-- Placement Section -->
                 <?php if ($placements || $avg_package || $highest_package): ?>
-                    <div class="content-section">
+                    <div class="content-section" id="placements">
                         <h2>Placements</h2>
                         <div class="section-content">
                             <div class="placement-stats">
@@ -202,6 +218,53 @@ while (have_posts()) : the_post();
                         </div>
                     </div>
                 <?php endif; ?>
+
+                <!-- Fees Section -->
+                <div class="content-section" id="fees">
+                    <h2>Fee Structure</h2>
+                    <div class="section-content">
+                        <div class="fee-details">
+                            <?php if ($fees_range): ?>
+                                <p><strong>Annual Fees:</strong> ₹<?php echo esc_html($fees_range); ?></p>
+                                <p class="fee-note">The fee structure may vary based on the course and category. Contact the college for detailed fee breakdown.</p>
+                            <?php else: ?>
+                                <p>Please contact the college for detailed fee structure information.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admission Section -->
+                <div class="content-section" id="admission">
+                    <h2>Admission Process</h2>
+                    <div class="section-content">
+                        <p>For admission to <?php the_title(); ?>, please follow the application process outlined below:</p>
+                        <ol class="admission-steps">
+                            <li>Fill out the online application form</li>
+                            <li>Submit required documents</li>
+                            <li>Pay the application fee</li>
+                            <li>Attend counseling (if required)</li>
+                            <li>Complete the admission process</li>
+                        </ol>
+                        <button type="button" class="btn btn-primary btn-apply" data-college-id="<?php echo $college_id; ?>">
+                            Start Application Process
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contact Section -->
+                <div class="content-section" id="contact">
+                    <h2>Contact Information</h2>
+                    <div class="section-content">
+                        <div class="contact-details">
+                            <p><strong>Address:</strong> <?php echo esc_html($city . ', ' . $state); ?></p>
+                            <?php if ($website): ?>
+                                <p><strong>Website:</strong> <a href="<?php echo esc_url($website); ?>" target="_blank"><?php echo esc_html($website); ?></a></p>
+                            <?php endif; ?>
+                            <p class="contact-note">For more information, please visit the college website or contact them directly.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Sidebar -->
@@ -276,6 +339,64 @@ while (have_posts()) : the_post();
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+}
+
+/* Sticky Navigation */
+.college-sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+
+.college-sticky-nav.scrolled {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.nav-progress-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #2271b1, #0073aa);
+    width: 0%;
+    transition: width 0.1s ease;
+}
+
+.college-nav-tabs {
+    display: flex;
+    gap: 5px;
+    padding: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.college-nav-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-tab {
+    padding: 16px 24px;
+    color: #555;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.nav-tab:hover {
+    color: #2271b1;
+    background: #f8f9fa;
+}
+
+.nav-tab.active {
+    color: #2271b1;
+    border-bottom-color: #2271b1;
+    font-weight: 600;
 }
 
 /* Header Section */
@@ -631,11 +752,81 @@ while (have_posts()) : the_post();
     .placement-stats {
         grid-template-columns: 1fr;
     }
+
+    .nav-tab {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
 }
 </style>
 
 <script>
 jQuery(document).ready(function($) {
+    // Sticky Navigation & Progress Bar functionality
+    const stickyNav = $('#college-sticky-nav');
+    const progressBar = $('#nav-progress-bar');
+    const navTabs = $('.nav-tab');
+    const sections = $('.content-section');
+
+    // Smooth scrolling to sections
+    navTabs.on('click', function(e) {
+        e.preventDefault();
+        const targetId = $(this).attr('href');
+        const targetSection = $(targetId);
+
+        if (targetSection.length) {
+            const offsetTop = targetSection.offset().top - stickyNav.outerHeight() - 20;
+
+            $('html, body').animate({
+                scrollTop: offsetTop
+            }, 500, function() {
+                // Update active tab after scrolling
+                updateActiveTab(targetId.substring(1));
+            });
+        }
+    });
+
+    // Update progress bar and active tab on scroll
+    $(window).on('scroll', function() {
+        // Progress bar calculation
+        const winScroll = $(window).scrollTop();
+        const height = $(document).height() - $(window).height();
+        const scrolled = (winScroll / height) * 100;
+        progressBar.css('width', scrolled + '%');
+
+        // Add shadow to sticky nav when scrolled
+        if (winScroll > 100) {
+            stickyNav.addClass('scrolled');
+        } else {
+            stickyNav.removeClass('scrolled');
+        }
+
+        // Update active tab based on visible section
+        let currentSection = '';
+        const scrollPos = winScroll + stickyNav.outerHeight() + 100;
+
+        sections.each(function() {
+            const sectionTop = $(this).offset().top;
+            const sectionBottom = sectionTop + $(this).outerHeight();
+            const sectionId = $(this).attr('id');
+
+            if (scrollPos >= sectionTop && scrollPos < sectionBottom) {
+                currentSection = sectionId;
+            }
+        });
+
+        if (currentSection) {
+            updateActiveTab(currentSection);
+        }
+    });
+
+    // Function to update active tab
+    function updateActiveTab(sectionId) {
+        navTabs.removeClass('active');
+        navTabs.filter('[data-section="' + sectionId + '"]').addClass('active');
+    }
+
+    // Apply button functionality
     $('.btn-apply').on('click', function() {
         const collegeId = $(this).data('college-id');
         // Redirect to application page
