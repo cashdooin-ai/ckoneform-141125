@@ -237,7 +237,8 @@ class CK_OneForm_Shortcodes {
         ), $atts);
 
         ob_start();
-        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/service-page.php';
+        // Use enhanced template with real-time data
+        include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/service-page-enhanced.php';
         return ob_get_clean();
     }
 
