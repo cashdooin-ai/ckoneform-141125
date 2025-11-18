@@ -21,6 +21,7 @@ class CK_OneForm_College_Importer {
         add_action('admin_post_ck_import_colleges', array(__CLASS__, 'handle_import'));
         add_action('admin_post_ck_import_colleges_csv', array(__CLASS__, 'handle_csv_import'));
         add_action('wp_ajax_ck_delete_all_colleges', array(__CLASS__, 'delete_all_colleges'));
+        add_action('wp_ajax_ck_generate_seo_urls', array(__CLASS__, 'generate_seo_urls'));
     }
 
     /**
@@ -169,6 +170,35 @@ class CK_OneForm_College_Importer {
                 </p>
             </div>
 
+            <!-- SEO Tools -->
+            <div class="card" style="max-width: 800px; margin-top: 20px; border-left: 4px solid #2271b1;">
+                <h2 style="color: #2271b1;">🔗 SEO URL Management</h2>
+                <p>Generate SEO-friendly URL slugs for all colleges automatically.</p>
+
+                <div style="margin: 15px 0; padding: 15px; background: #f0f6fc; border-radius: 4px;">
+                    <p><strong>How it works:</strong></p>
+                    <ul style="margin: 10px 0 10px 20px;">
+                        <li>Converts college names to URL-friendly slugs (e.g., "IIT Bombay" → "iit-bombay")</li>
+                        <li>Removes special characters and spaces</li>
+                        <li>Uses lowercase letters and hyphens only</li>
+                        <li>Updates both the post slug and SEO custom slug</li>
+                        <li>Processes <?php echo $total_colleges; ?> colleges</li>
+                    </ul>
+                </div>
+
+                <button type="button" class="button button-primary" id="generate-seo-urls" style="margin-right: 10px;">
+                    🔗 Generate SEO URLs for All Colleges
+                </button>
+
+                <div id="seo-url-progress" style="display: none; margin-top: 15px; padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 4px;">
+                    <p><strong>Progress:</strong></p>
+                    <div style="background: #f0f0f0; height: 30px; border-radius: 4px; overflow: hidden; margin: 10px 0;">
+                        <div id="seo-progress-bar" style="background: #2271b1; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <p id="seo-progress-text">Processing...</p>
+                </div>
+            </div>
+
             <!-- Danger Zone -->
             <div class="card" style="max-width: 800px; margin-top: 20px; border-left: 4px solid #dc3232;">
                 <h2 style="color: #dc3232;">⚠️ Danger Zone</h2>
@@ -182,6 +212,43 @@ class CK_OneForm_College_Importer {
 
         <script>
         jQuery(document).ready(function($) {
+            // Generate SEO URLs
+            $('#generate-seo-urls').on('click', function() {
+                if (!confirm('This will generate SEO-friendly URL slugs for all <?php echo $total_colleges; ?> colleges. Continue?')) {
+                    return;
+                }
+
+                var button = $(this);
+                button.prop('disabled', true).text('⏳ Processing...');
+                $('#seo-url-progress').show();
+
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'ck_generate_seo_urls',
+                        nonce: '<?php echo wp_create_nonce('generate_seo_urls'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#seo-progress-bar').css('width', '100%');
+                            $('#seo-progress-text').html('<strong style="color: #46b450;">✓ ' + response.data.message + '</strong>');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
+                        } else {
+                            alert('Error: ' + response.data);
+                            button.prop('disabled', false).text('🔗 Generate SEO URLs for All Colleges');
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred. Please try again.');
+                        button.prop('disabled', false).text('🔗 Generate SEO URLs for All Colleges');
+                    }
+                });
+            });
+
+            // Delete all colleges
             $('#delete-all-colleges').on('click', function() {
                 if (!confirm('Are you sure you want to delete ALL college posts? This cannot be undone!')) {
                     return;
@@ -443,6 +510,45 @@ class CK_OneForm_College_Importer {
         }
 
         wp_send_json_success(array('message' => sprintf('%d colleges deleted successfully', $deleted)));
+    }
+
+    /**
+     * Generate SEO URLs for all colleges
+     */
+    public static function generate_seo_urls() {
+        check_ajax_referer('generate_seo_urls', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+
+        $colleges = get_posts(array(
+            'post_type' => 'ck_college',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+        ));
+
+        $updated = 0;
+        foreach ($colleges as $college_id) {
+            $post = get_post($college_id);
+            $title = get_the_title($college_id);
+
+            // Generate SEO-friendly slug from title
+            $seo_slug = sanitize_title($title);
+
+            // Update post slug
+            wp_update_post(array(
+                'ID' => $college_id,
+                'post_name' => $seo_slug
+            ));
+
+            // Update custom URL slug meta
+            update_post_meta($college_id, 'custom_url_slug', $seo_slug);
+
+            $updated++;
+        }
+
+        wp_send_json_success(array('message' => sprintf('Successfully generated SEO URLs for %d colleges', $updated)));
     }
 }
 

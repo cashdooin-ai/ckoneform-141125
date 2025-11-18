@@ -60,6 +60,7 @@ class CK_OneForm_SEO {
         $og_image = get_post_meta($post->ID, 'og_image', true);
         $robots_index = get_post_meta($post->ID, 'robots_index', true) ?: 'index';
         $robots_follow = get_post_meta($post->ID, 'robots_follow', true) ?: 'follow';
+        $custom_url_slug = get_post_meta($post->ID, 'custom_url_slug', true) ?: $post->post_name;
 
         ?>
         <style>
@@ -176,14 +177,33 @@ class CK_OneForm_SEO {
 
         <!-- Basic SEO Tab -->
         <div id="basic" class="ck-seo-tab-content active">
+            <div class="ck-seo-field" style="background: #e7f5ff; border-left: 4px solid #2271b1;">
+                <label for="custom_url_slug">
+                    🔗 SEO-Friendly URL Slug
+                    <span class="ck-seo-counter" id="slug-counter"><?php echo strlen($custom_url_slug); ?> chars</span>
+                </label>
+                <input type="text"
+                       id="custom_url_slug"
+                       name="custom_url_slug"
+                       value="<?php echo esc_attr($custom_url_slug); ?>"
+                       placeholder="<?php echo esc_attr(sanitize_title(get_the_title())); ?>"
+                       pattern="[a-z0-9-]+"
+                       style="font-family: monospace; font-size: 13px;">
+                <span class="ck-seo-help">
+                    📌 <strong>Current URL:</strong> <code id="url-preview-slug"><?php echo home_url('/colleges/' . $custom_url_slug . '/'); ?></code><br>
+                    💡 Use lowercase letters, numbers, and hyphens only. Example: "iit-bombay" or "nit-trichy-engineering"<br>
+                    ⚠️ Changing this will change the college's public URL. Set up redirects if the old URL was already indexed by Google.
+                </span>
+            </div>
+
             <div class="ck-seo-preview">
                 <h4>📊 Google Search Preview</h4>
                 <div class="google-preview">
                     <div class="google-preview-title" id="preview-title">
                         <?php echo $seo_title ?: get_the_title(); ?>
                     </div>
-                    <div class="google-preview-url">
-                        <?php echo get_permalink($post->ID); ?>
+                    <div class="google-preview-url" id="preview-url">
+                        <?php echo home_url('/colleges/' . $custom_url_slug . '/'); ?>
                     </div>
                     <div class="google-preview-description" id="preview-description">
                         <?php echo $seo_description ?: get_the_excerpt(); ?>
@@ -365,10 +385,29 @@ class CK_OneForm_SEO {
             function updatePreview() {
                 var title = $('#seo_title').val() || '<?php echo esc_js(get_the_title()); ?>';
                 var description = $('#seo_description').val() || '<?php echo esc_js(get_the_excerpt()); ?>';
+                var slug = $('#custom_url_slug').val() || '<?php echo esc_js($custom_url_slug); ?>';
+                var baseUrl = '<?php echo esc_js(home_url('/colleges/')); ?>';
 
                 $('#preview-title').text(title);
                 $('#preview-description').text(description);
+                $('#preview-url').text(baseUrl + slug + '/');
+                $('#url-preview-slug').text(baseUrl + slug + '/');
             }
+
+            // URL Slug - sanitize and update preview
+            $('#custom_url_slug').on('input', function() {
+                var slug = $(this).val();
+                // Auto-sanitize: lowercase, replace spaces with hyphens, remove special chars
+                slug = slug.toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^a-z0-9-]/g, '')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+
+                $(this).val(slug);
+                $('#slug-counter').text(slug.length + ' chars');
+                updatePreview();
+            });
 
             $('#seo_title').on('input', function() {
                 updateCounter(this, '#title-counter', 60);
@@ -379,6 +418,20 @@ class CK_OneForm_SEO {
                 updateCounter(this, '#desc-counter', 160);
                 updatePreview();
             }).trigger('input');
+
+            // Generate slug from title button
+            $('<button type="button" class="button" style="margin-left: 10px;">Generate from Title</button>')
+                .insertAfter('#custom_url_slug')
+                .on('click', function(e) {
+                    e.preventDefault();
+                    var title = '<?php echo esc_js(get_the_title()); ?>';
+                    var slug = title.toLowerCase()
+                        .replace(/\s+/g, '-')
+                        .replace(/[^a-z0-9-]/g, '')
+                        .replace(/-+/g, '-')
+                        .replace(/^-|-$/g, '');
+                    $('#custom_url_slug').val(slug).trigger('input');
+                });
         });
 
         function ckUploadImage() {
@@ -434,6 +487,29 @@ class CK_OneForm_SEO {
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
                 update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+            }
+        }
+
+        // Handle custom URL slug
+        if (isset($_POST['custom_url_slug'])) {
+            $custom_slug = sanitize_title($_POST['custom_url_slug']);
+
+            // Save to meta
+            update_post_meta($post_id, 'custom_url_slug', $custom_slug);
+
+            // Update the actual post slug (post_name) to match
+            if ($custom_slug && $custom_slug !== $post->post_name) {
+                // Remove the save_post hook temporarily to avoid infinite loop
+                remove_action('save_post_ck_college', array(__CLASS__, 'save_seo_meta'), 10);
+
+                // Update post slug
+                wp_update_post(array(
+                    'ID' => $post_id,
+                    'post_name' => $custom_slug
+                ));
+
+                // Re-add the hook
+                add_action('save_post_ck_college', array(__CLASS__, 'save_seo_meta'), 10, 2);
             }
         }
     }
