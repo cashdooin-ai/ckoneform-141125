@@ -12,6 +12,26 @@ if (!defined('ABSPATH')) {
 class CK_OneForm_Post_Types {
 
     /**
+     * Initialize hooks
+     */
+    public static function init() {
+        add_filter('single_template', array(__CLASS__, 'load_single_college_template'));
+    }
+
+    /**
+     * Load custom template for single college
+     */
+    public static function load_single_college_template($template) {
+        if (is_singular('ck_college')) {
+            $custom_template = CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/single-college.php';
+            if (file_exists($custom_template)) {
+                return $custom_template;
+            }
+        }
+        return $template;
+    }
+
+    /**
      * Register custom taxonomies
      */
     public static function register_taxonomies() {

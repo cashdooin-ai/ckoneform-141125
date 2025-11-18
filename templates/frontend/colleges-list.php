@@ -90,3 +90,52 @@ $colleges = new WP_Query($args);
 
     <?php wp_reset_postdata(); ?>
 </div>
+
+<style>
+/* Mobile responsive fixes for colleges list */
+@media (max-width: 768px) {
+    .ck-oneform-colleges-list .row {
+        margin: 0 !important;
+    }
+
+    .ck-oneform-colleges-list .col-md-6 {
+        width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .ck-oneform-colleges-list .mb-4 {
+        margin-bottom: 20px !important;
+    }
+
+    .college-card {
+        margin-bottom: 15px !important;
+    }
+
+    .college-thumbnail {
+        height: 200px !important;
+    }
+
+    .college-content {
+        padding: 15px !important;
+    }
+
+    .college-content h3 {
+        font-size: 1.1rem !important;
+    }
+
+    .college-actions {
+        margin-top: 15px !important;
+    }
+
+    .college-actions .btn {
+        width: 100% !important;
+        display: block !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+    .ck-oneform-colleges-list .col-md-6 {
+        width: 50% !important;
+    }
+}
+</style>

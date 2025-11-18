@@ -137,6 +137,9 @@ class CK_OneForm {
      * Initialize plugin
      */
     public function init() {
+        // Initialize post types hooks
+        CK_OneForm_Post_Types::init();
+
         // Register post types
         CK_OneForm_Post_Types::register_post_types();
 
@@ -170,6 +173,9 @@ class CK_OneForm {
 
         // Load fixes CSS with high priority to override theme conflicts
         wp_enqueue_style('ck-oneform-frontend-fixes', CK_ONEFORM_PLUGIN_URL . 'assets/css/frontend-fixes.css', array('ck-oneform-frontend'), CK_ONEFORM_VERSION, 'all');
+
+        // Load responsive CSS with highest priority for mobile and input field fixes
+        wp_enqueue_style('ck-oneform-responsive', CK_ONEFORM_PLUGIN_URL . 'assets/css/responsive.css', array('ck-oneform-frontend-fixes'), CK_ONEFORM_VERSION, 'all');
 
         wp_enqueue_script('ck-oneform-frontend', CK_ONEFORM_PLUGIN_URL . 'assets/js/frontend.js', array('jquery'), CK_ONEFORM_VERSION, true);
 
