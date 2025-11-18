@@ -153,13 +153,23 @@ include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-header.php';
 
         <!-- Dynamic Data Section - Shows relevant seeded data based on service type -->
         <?php
-        // Determine which data to show based on service slug
-        $show_scholarships = in_array($service_slug, array('scholarships-database', 'financial-aid', 'scholarship-finder', 'merit-scholarships'));
-        $show_exams = in_array($service_slug, array('exam-calendar', 'entrance-exams', 'exam-prep', 'jee-preparation', 'neet-preparation', 'cat-preparation'));
-        $show_careers = in_array($service_slug, array('career-guidance', 'career-paths', 'career-counseling', 'career-assessment', 'job-profiles'));
-        $show_loans = in_array($service_slug, array('education-loans', 'financial-aid', 'loan-assistance', 'bank-loans', 'emi-calculator'));
-        $show_rankings = in_array($service_slug, array('college-rankings', 'top-colleges', 'nirf-rankings', 'college-comparison', 'best-colleges'));
-        $show_jobs = in_array($service_slug, array('placement-prep', 'job-portal', 'internships', 'campus-placements', 'job-opportunities'));
+        // Get admin display settings
+        $display_options = get_option('ck_service_display_options', array(
+            'show_scholarships' => true,
+            'show_exams' => true,
+            'show_careers' => true,
+            'show_loans' => true,
+            'show_rankings' => true,
+            'show_jobs' => true,
+        ));
+
+        // Determine which data to show based on service slug AND admin settings
+        $show_scholarships = !empty($display_options['show_scholarships']) && in_array($service_slug, array('scholarships-database', 'financial-aid', 'scholarship-finder', 'merit-scholarships'));
+        $show_exams = !empty($display_options['show_exams']) && in_array($service_slug, array('exam-calendar', 'entrance-exams', 'exam-prep', 'jee-preparation', 'neet-preparation', 'cat-preparation'));
+        $show_careers = !empty($display_options['show_careers']) && in_array($service_slug, array('career-guidance', 'career-paths', 'career-counseling', 'career-assessment', 'job-profiles'));
+        $show_loans = !empty($display_options['show_loans']) && in_array($service_slug, array('education-loans', 'financial-aid', 'loan-assistance', 'bank-loans', 'emi-calculator'));
+        $show_rankings = !empty($display_options['show_rankings']) && in_array($service_slug, array('college-rankings', 'top-colleges', 'nirf-rankings', 'college-comparison', 'best-colleges'));
+        $show_jobs = !empty($display_options['show_jobs']) && in_array($service_slug, array('placement-prep', 'job-portal', 'internships', 'campus-placements', 'job-opportunities'));
 
         // Load seeded data if available and relevant
         if (class_exists('CK_OneForm_Data_Seeder')):

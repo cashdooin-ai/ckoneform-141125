@@ -84,6 +84,9 @@ class CK_OneForm {
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-student-auth.php';
         require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-navigation.php';
 
+        // Data Seeder (needed on both admin and frontend for service pages)
+        require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-data-seeder.php';
+
         // Admin includes
         if (is_admin()) {
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-admin.php';
@@ -95,7 +98,7 @@ class CK_OneForm {
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-lead-manager.php';
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-mock-test-generator.php';
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-payment-settings.php';
-            require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-data-seeder.php';
+            require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-service-settings.php';
         }
 
         // Debug page (available to all users for troubleshooting)

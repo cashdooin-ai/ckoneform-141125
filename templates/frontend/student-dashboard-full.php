@@ -240,44 +240,62 @@ $total_offers = $wpdb->get_var($wpdb->prepare(
         <?php elseif ($current_tab === 'services'): ?>
             <!-- Services Tab -->
             <div class="dashboard-section">
-                <h2>🎯 My Services</h2>
-                <?php
-                $services = $wpdb->get_results($wpdb->prepare(
-                    "SELECT ss.*, s.title, s.description, s.icon 
-                    FROM {$wpdb->prefix}ck_oneform_student_services ss
-                    INNER JOIN {$wpdb->prefix}ck_oneform_services s ON ss.service_id = s.id
-                    WHERE ss.student_id = %d
-                    ORDER BY ss.purchased_date DESC",
-                    $student_id
-                ));
+                <h2>🎯 Available Services</h2>
+                <p style="margin-bottom: 30px; color: #666;">Explore our comprehensive range of services to help you succeed in your college journey</p>
 
-                if ($services):
+                <?php
+                // Load service pages data
+                $services_data_file = CK_ONEFORM_PLUGIN_DIR . 'data/service-pages-content.php';
+                if (file_exists($services_data_file)) {
+                    $services_data = include $services_data_file;
+                    $service_count = 0;
+
+                    // Get featured services from admin settings
+                    $featured_services = get_option('ck_service_featured_list', array(
+                        'college-search', 'scholarships-database', 'exam-calendar',
+                        'career-guidance', 'education-loans', 'mock-tests',
+                        'college-comparison', 'application-tracking', 'document-verification',
+                        'entrance-exams', 'career-counseling', 'merit-scholarships'
+                    ));
                 ?>
                     <div class="services-grid">
-                        <?php foreach ($services as $service): ?>
+                        <?php
+                        foreach ($services_data as $category => $category_services):
+                            foreach ($category_services as $service):
+                                // Show only featured services
+                                if (in_array($service['slug'], $featured_services) && $service_count < 12):
+                                    $service_count++;
+                        ?>
                             <div class="service-card">
-                                <div class="service-icon"><?php echo $service->icon ?: '🎯'; ?></div>
-                                <h3><?php echo esc_html($service->title); ?></h3>
-                                <p><?php echo esc_html($service->description); ?></p>
-                                <div class="service-meta">
-                                    <span>Purchased: <?php echo date('M d, Y', strtotime($service->purchased_date)); ?></span>
-                                    <?php if ($service->expires_date): ?>
-                                        <span>Expires: <?php echo date('M d, Y', strtotime($service->expires_date)); ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <span class="status-badge status-<?php echo strtolower($service->status); ?>">
-                                    <?php echo ucfirst($service->status); ?>
-                                </span>
+                                <div class="service-icon" style="font-size: 3rem;"><?php echo $service['icon']; ?></div>
+                                <h3><?php echo esc_html($service['title']); ?></h3>
+                                <p><?php echo esc_html($service['desc']); ?></p>
+                                <a href="<?php echo esc_url(home_url($service['url'])); ?>" class="btn-primary" style="margin-top: 15px; display: inline-block;">
+                                    Explore Service →
+                                </a>
                             </div>
-                        <?php endforeach; ?>
+                        <?php
+                                endif;
+                            endforeach;
+                        endforeach;
+                        ?>
                     </div>
-                <?php else: ?>
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <a href="<?php echo home_url('/services/'); ?>" class="btn-primary btn-large">
+                            View All Services →
+                        </a>
+                    </div>
+                <?php
+                } else {
+                ?>
                     <div class="empty-state">
-                        <h3>No services purchased yet</h3>
-                        <p>Explore our services to enhance your application journey!</p>
-                        <a href="<?php echo home_url('/services/'); ?>" class="btn-primary">Browse Services</a>
+                        <h3>No services available</h3>
+                        <p>Services will appear here once they are configured.</p>
                     </div>
-                <?php endif; ?>
+                <?php
+                }
+                ?>
             </div>
 
         <?php elseif ($current_tab === 'tests'): ?>

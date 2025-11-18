@@ -271,46 +271,53 @@ $theme_color = $dashboard_settings['theme_color'];
             <!-- Services Tab -->
             <div class="tab-panel" id="panel-services">
                 <div class="panel-header">
-                    <h3><i class="fas fa-shopping-bag"></i> My Services</h3>
+                    <h3><i class="fas fa-shopping-bag"></i> Available Services</h3>
+                    <p class="panel-subtitle">Explore our comprehensive range of services to help you succeed</p>
                 </div>
 
                 <div class="services-grid">
                     <?php
-                    $services = $wpdb->get_results($wpdb->prepare(
-                        "SELECT ss.*, s.name, s.description, s.price
-                        FROM {$wpdb->prefix}ck_oneform_student_services ss
-                        LEFT JOIN {$wpdb->prefix}ck_oneform_services s ON ss.service_id = s.id
-                        WHERE ss.student_id = %d
-                        ORDER BY ss.purchased_at DESC",
-                        $student->id
-                    ));
+                    // Load service pages data
+                    $services_data_file = CK_ONEFORM_PLUGIN_DIR . 'data/service-pages-content.php';
+                    if (file_exists($services_data_file)) {
+                        $services_data = include $services_data_file;
+                        $service_count = 0;
 
-                    if ($services):
-                        foreach ($services as $service):
+                        // Get featured services from admin settings
+                        $featured_services = get_option('ck_service_featured_list', array(
+                            'college-search', 'scholarships-database', 'exam-calendar',
+                            'career-guidance', 'education-loans', 'mock-tests',
+                            'college-comparison', 'application-tracking', 'document-verification'
+                        ));
+
+                        foreach ($services_data as $category => $category_services):
+                            foreach ($category_services as $service):
+                                // Show only featured services or limit to first 9
+                                if (in_array($service['slug'], $featured_services) && $service_count < 9):
+                                    $service_count++;
                     ?>
                     <div class="service-card">
-                        <div class="service-icon">
-                            <i class="fas fa-box"></i>
+                        <div class="service-icon" style="font-size: 2.5rem;">
+                            <?php echo $service['icon']; ?>
                         </div>
-                        <h4><?php echo esc_html($service->name); ?></h4>
-                        <p><?php echo esc_html($service->description); ?></p>
-                        <div class="service-meta">
-                            <span><i class="fas fa-calendar"></i> <?php echo date('M d, Y', strtotime($service->purchased_at)); ?></span>
-                            <span class="status-active">Active</span>
-                        </div>
-                        <button class="btn-outline btn-full">Access Service</button>
+                        <h4><?php echo esc_html($service['title']); ?></h4>
+                        <p><?php echo esc_html($service['desc']); ?></p>
+                        <a href="<?php echo esc_url(home_url($service['url'])); ?>" class="btn-outline btn-full">
+                            Explore Service →
+                        </a>
                     </div>
                     <?php
+                                endif;
+                            endforeach;
                         endforeach;
-                    else:
+                    }
                     ?>
-                    <div class="empty-state">
-                        <i class="fas fa-shopping-cart"></i>
-                        <h4>No Services Yet</h4>
-                        <p>Explore our services to enhance your college preparation.</p>
-                        <button class="btn-primary">Browse Services</button>
-                    </div>
-                    <?php endif; ?>
+                </div>
+
+                <div class="services-footer" style="text-align: center; margin-top: 30px;">
+                    <a href="<?php echo home_url('/services/'); ?>" class="btn-primary btn-large">
+                        View All Services →
+                    </a>
                 </div>
             </div>
             <?php endif; ?>
