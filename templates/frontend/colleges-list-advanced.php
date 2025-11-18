@@ -315,7 +315,7 @@ $categories = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
                 </div>
 
                 <div class="card-footer">
-                    <a href="<?php echo esc_url(home_url('/college-details/?college_id=' . $college_id)); ?>"
+                    <a href="<?php echo get_permalink($college_id); ?>"
                        class="btn-view-details">
                         📖 View Details
                     </a>
