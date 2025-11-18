@@ -87,6 +87,9 @@ class CK_OneForm {
         // Data Seeder (needed on both admin and frontend for service pages)
         require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-data-seeder.php';
 
+        // Scholarship Recommender (AI-powered recommendations)
+        require_once CK_ONEFORM_PLUGIN_DIR . 'includes/class-scholarship-recommender.php';
+
         // Admin includes
         if (is_admin()) {
             require_once CK_ONEFORM_PLUGIN_DIR . 'admin/class-admin.php';

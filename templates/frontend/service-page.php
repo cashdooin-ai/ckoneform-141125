@@ -216,6 +216,19 @@ include CK_ONEFORM_PLUGIN_DIR . 'templates/frontend/site-header.php';
         </section>
         <?php endif; endif; ?>
 
+        <?php
+        // AI-Powered Scholarship Recommendations
+        if ($show_scholarships && class_exists('CK_OneForm_Scholarship_Recommender')):
+            // Get filter criteria from query string
+            $criteria = array(
+                'category' => isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '',
+                'course' => isset($_GET['course']) ? sanitize_text_field($_GET['course']) : '',
+                'level' => isset($_GET['level']) ? sanitize_text_field($_GET['level']) : '',
+            );
+            echo CK_OneForm_Scholarship_Recommender::render_widget($criteria);
+        endif;
+        ?>
+
         <?php if ($show_exams):
             $exams = CK_OneForm_Data_Seeder::get_exams();
             if (!empty($exams)):
